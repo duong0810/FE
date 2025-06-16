@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap');
+:not(input):not(textarea) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.toast-container {
+  > div > div {
+    padding: 12px 16px;
+    background-color: #212121;
+    color: #FFFFFFF2;
+    border-radius: 8px;
+  }
+}
+
+.zaui-sheet{
+  .zaui-sheet-content {
+    min-height: unset;
+  }
+}
+
+// /* Ẩn pointer (mũi tên) trên vòng quay */
+// img[alt="roulette-static"] {
+//   display: none !important;
+// }

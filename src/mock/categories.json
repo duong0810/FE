@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "name": "Xe tay ga",
+    "image": "/images/category/category-xetayga.webp"
+  },
+  {
+    "id": 2,
+    "name": "Xe số",
+    "image": "/images/category/category-xeso.webp"
+  },
+  {
+    "id": 3,
+    "name": "Xe côn tay",
+    "image": "/images/category/category-xecontay.webp"
+  },
+  {
+    "id": 4,
+    "name": "Xe phân khối lớn",
+    "image": "/images/category/category-xephankhoilon.webp"
+  },
+  {
+    "id": 5,
+    "name": "Xe điện",
+    "image": "/images/category/category-xedien.webp"
+  }
+]
