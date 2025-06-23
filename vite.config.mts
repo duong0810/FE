@@ -5,7 +5,7 @@ import path from "path";
 
 export default () => {
   return defineConfig({
-    root: "./src",
+    // root: "./src",
     base: "",
     plugins: [zaloMiniApp(), react()],
     resolve: {
