@@ -175,6 +175,14 @@ export default function VoucherWarehouse() {
 
   return (
     <div className="p-4 bg-gradient-to-br from-blue-50 via-yellow-50 to-pink-50 min-h-screen">
+      <div className="flex justify-end mb-2">
+        <button
+          onClick={() => navigate("/point")}
+          className="bg-blue-400 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded shadow transition"
+        >
+          🎡 Vòng quay may mắn
+        </button>
+      </div>
       <h1 className="text-2xl font-extrabold mb-4 text-blue-700 flex items-center gap-2">
         <span className="text-3xl">🎁</span> Kho Voucher
       </h1>

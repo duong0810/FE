@@ -19,7 +19,7 @@ type Voucher = {
   ExpiryDate?: string; // ✅ Cho phép undefined
 };
 
-export default function Points() {
+export default function Point() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
@@ -573,8 +573,8 @@ export default function Points() {
                style={{ fontFamily: 'serif' }}>
             {isSpinning ? (
               <span className="flex items-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-3 border-red-800 border-t-transparent mr-4"></div>
-                ĐANG QUAY MAY MẮN...
+                <div className="flex justify-center items-center text-center font-bold text-xl md:text-2xl mt-6"></div>
+                ĐANG QUAY
               </span>
             ) : loading ? (
               "ĐANG TẢI..."
