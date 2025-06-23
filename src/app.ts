@@ -1,4 +1,4 @@
-console.log("App loaded");
+
 // React core
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
