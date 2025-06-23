@@ -5,7 +5,6 @@ import path from "path";
 
 export default () => {
   return defineConfig({
-    // root: "./src",
     base: "",
     plugins: [zaloMiniApp(), react()],
     resolve: {
@@ -15,8 +14,11 @@ export default () => {
     },
     server: {
       proxy: {
-        '/api': 'http://localhost:5000', // Thêm dòng này
+        '/api': 'http://localhost:5000',
       },
+    },
+    build: {
+      outDir: "dist", // Thêm dòng này
     },
   });
 };
