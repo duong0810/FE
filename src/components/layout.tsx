@@ -1,3 +1,4 @@
+console.log("Layout loaded");
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -22,7 +23,9 @@ export default function Layout() {
   const currentPath = getCurrentPath();
 
   return (
+    
     <div className="flex flex-col h-screen">
+      <div>Test Layout</div>
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         <Outlet />
