@@ -1,3 +1,4 @@
+console.log("App loaded");
 // React core
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -23,3 +24,4 @@ if (!window.APP_CONFIG) {
 // Mount the app
 const root = createRoot(document.getElementById("app")!);
 root.render(createElement(RouterProvider, { router }));
+ 

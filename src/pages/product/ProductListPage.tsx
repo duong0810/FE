@@ -1,3 +1,4 @@
+console.log("ProductListPage loaded");
 import React, { useEffect, useState } from "react";
 import ProductGrid from "@/components/product-grid";
 import { Product } from "@/types";
