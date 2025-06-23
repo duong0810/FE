@@ -15,6 +15,8 @@ type Voucher = {
   emoji?: string;
   color?: string;
   [key: string]: any;
+  expirydate?: string; // ✅ Cho phép undefined
+  ExpiryDate?: string; // ✅ Cho phép undefined
 };
 
 export default function Points() {
@@ -198,15 +200,25 @@ export default function Points() {
         selectedList = selectedList.map(v => ({ ...v, isNew: false }));
 
         const wonVoucher = {
-          ...wheelVouchers[winnerIndex],
-          ...data.voucher,
-          Id: data.voucher.VoucherID || wheelVouchers[winnerIndex]?.Id,
-          description: wonDescription,
+          Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
+          Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
+          Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
+          Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
+          Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
+          // Lấy ngày hết hạn từ nhiều trường khác nhau
+          ExpiryDate:
+            data.voucher.ExpiryDate ||
+            data.voucher.expirydate ||
+            data.voucher.expiredAt ||
+            data.voucher.endDate ||
+            wheelVouchers[winnerIndex]?.ExpiryDate ||
+            wheelVouchers[winnerIndex]?.expirydate ||
+            wheelVouchers[winnerIndex]?.expiredAt ||
+            wheelVouchers[winnerIndex]?.endDate ||
+            "",
           isNew: true,
           collectedAt: Date.now(),
-          uniqueId: `${data.voucher.VoucherID || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
-          Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount,
-          ExpiryDate: data.voucher.ExpiryDate || wheelVouchers[winnerIndex]?.ExpiryDate,
+          uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
           // Thêm các trường khác nếu cần
         };
         
@@ -220,7 +232,6 @@ export default function Points() {
     } catch (error) {
       console.error('❌ Spin API error:', error);
       setIsSpinning(false);
-      
       console.log('🔄 Fallback to local random...');
       
       const probabilities = wheelVouchers.map(v => v.probability || 0);
@@ -473,7 +484,7 @@ export default function Points() {
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-7xl font-black text-yellow-300 mb-2 drop-shadow-2xl"
+          <h1 className="text-2xl md:text-5xl font-black text-yellow-300 mb-2 drop-shadow-2xl"
               style={{ fontFamily: 'serif', textShadow: '4px 4px 0px #8B0000' }}>
             {banner.header1}
           </h1>
@@ -568,8 +579,8 @@ export default function Points() {
             ) : loading ? (
               "ĐANG TẢI..."
             ) : (
-              <span className="flex items-center">
-                🧧 QUAY LIỀN TAY - NHẬN LÌ XÌ 🧧
+                <span className="flex items-center whitespace-nowrap">
+                🧧 QUAY LIỀN TAY NHẬN LÌ XÌ 🧧
               </span>
             )}
           </div>
@@ -589,8 +600,23 @@ export default function Points() {
                     )}
                   </div>
                   <div className="font-bold text-sm" style={{ fontFamily: 'serif' }}>
-                    {voucher.description || "Voucher"} {/* ✅ Fallback */}
+                    {voucher.description || "Voucher"}
                   </div>
+                  {/* Thêm các trường thông tin khác nếu có */}
+                  {/* {voucher.Code && (
+                    <div className="text-xs mt-1">Mã: <span className="font-semibold">{voucher.Code}</span></div>
+                  )} */}
+                  {voucher.Discount && (
+                    <div className="text-xs mt-1">Giảm giá: <span className="font-semibold">{voucher.Discount}</span></div>
+                  )}
+                  {(voucher.ExpiryDate || voucher.expiredAt) && (
+                    <div className="text-xs mt-1">
+                      HSD: <span className="font-semibold">{voucher.ExpiryDate || voucher.expiredAt}</span>
+                    </div>
+                  )}
+                  {voucher.condition && (
+                    <div className="text-xs mt-1">Điều kiện: <span className="font-semibold">{voucher.condition}</span></div>
+                  )}
                 </div>
               ))}
             </div>

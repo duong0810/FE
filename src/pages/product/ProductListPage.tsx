@@ -47,7 +47,7 @@ const ProductListPage: React.FC = () => {
       <h1 className="text-xl font-bold mb-4">Danh sách sản phẩm</h1>
       {categories.map((cat) => (
         <div key={cat} className="mb-8">
-          <h2 className="font-semibold text-lg mb-2">{cat}</h2>
+          {/* <h2 className="font-semibold text-lg mb-2">{cat}</h2> */}
           <ProductGrid products={products.filter((p) => p.category === cat)} />
         </div>
       ))}
