@@ -14,11 +14,12 @@ export const userState = atom(() =>
 // Banners (FIX: Return hardcoded array instead of API call)
 export const bannersState = atom(() => {
   // Return hardcoded banners for now
+  const BE_DOMAIN = 'https://zalo.kosmosdevelopment.com';
   const defaultBanners: string[] = [
-    '/images/banner/banner-1.jpg',
-    '/images/banner/banner-2.jpg',
-    '/images/banner/banner-3.jpg'
-  ];
+  `${BE_DOMAIN}/images/banner/banner.jpg`,
+  `${BE_DOMAIN}/images/banner/banner.jpg`,
+  `${BE_DOMAIN}/images/banner/banner.jpg`
+];
   return Promise.resolve(defaultBanners);
 });
 
@@ -37,36 +38,37 @@ export const selectedTabIndexState = atom(0);
 // Categories (FIX: Add missing image property)
 export const categoriesState = atom(() => {
   // Return hardcoded categories with ALL required properties
+  const BE_DOMAIN = 'https://zalo.kosmosdevelopment.com';
   const defaultCategories: Category[] = [
     { 
       id: 1, 
       name: 'Tất cả', 
-      image: '/images/category/category-general.webp' 
+      image: `${BE_DOMAIN}/images/category/category_xetayga.png`    
     },
     { 
       id: 2, 
       name: 'Xe tay ga', 
-      image: '/images/category/category-motorbike.webp' 
+      image: `${BE_DOMAIN}/images/category/category_xetayga.png`    
     },
     { 
       id: 3, 
       name: 'Xe số', 
-      image: '/images/category/category-parts.webp' 
+      image: `${BE_DOMAIN}/images/category/category-xeso.png`        
     },
     { 
       id: 4, 
       name: 'Xe côn tay', 
-      image: '/images/category/category-parts.webp' 
+      image: `${BE_DOMAIN}/images/category/category-xecontay.png` 
     },
     { 
       id: 5, 
       name: 'Xe phân khối lớn', 
-      image: '/images/category/category-parts.webp' 
+      image: `${BE_DOMAIN}/images/category/category-xephankhoilon.png` 
     },
     { 
       id: 6, 
       name: 'Xe điện', 
-      image: '/images/category/category-parts.webp' 
+      image: `${BE_DOMAIN}/images/category/category-xedien.png` 
     }
   ];
   return Promise.resolve(defaultCategories);
@@ -84,7 +86,7 @@ export const productsState = atom(async () => {
     console.log('🚀 Fetching products from API...');
     
     // FIX: Use correct API URL (port 3000)
-    const response = await fetch('https://be-sgv1.onrender.com/api/products');
+    const response = await fetch('https://zalo.kosmosdevelopment.com/api/products');
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

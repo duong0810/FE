@@ -13,14 +13,13 @@ export default function ProductGrid({
   replace,
   ...props
 }: ProductGridProps) {
-  console.log("ProductGrid products:", products); 
   return (
     <div
       className={"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 p-4 gap-x-4 gap-y-8 ".concat(className ?? "")}
       {...props}
     >
       {products.map((product) => (
-        <ProductItem key={product.id} product={product} replace={replace} />
+        <ProductItem key={product.id} product={product} />
       ))}
     </div>
   );

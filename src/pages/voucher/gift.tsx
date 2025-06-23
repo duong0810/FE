@@ -11,6 +11,10 @@ type Voucher = {
   collectedAt?: number;
   uniqueId?: string;
   Discount?: number;
+  description?: string;
+  discount?: number;
+  expiryDate?: string;
+  expirydate?: string;
 };
 
 // Hàm parse ngày hỗ trợ cả ISO và dd/mm/yyyy
@@ -142,15 +146,15 @@ export default function VoucherPage() {
               </div>
 
               {/* Phần giảm giá */}
-              {typeof voucher.Discount === "number" && voucher.Discount > 0 && (
+              {(voucher.Discount || (voucher as any).discount) > 0 && (
                 <p className="text-base font-bold text-red-700 text-center mb-1">
-                  {voucher.Discount} %
+                  {parseFloat(voucher.Discount || (voucher as any).discount)} %
                 </p>
               )}
 
               {/* Mô tả */}
               <h3 className="text-xs font-bold text-blue-700 line-clamp-2 mb-1">
-                {voucher.Description || ""}
+                {voucher.Description || voucher.description || ""}
               </h3>
 
               {/* Mã code */}
@@ -163,10 +167,12 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Ngày hết hạn */}
-                {voucher.ExpiryDate && (
+                {(voucher.ExpiryDate || (voucher as any).expirydate) && (
                   <p className="text-xs text-gray-500 flex justify-between items-center">
                     <span>Hết hạn:</span>
-                    <span className="font-medium">{formatDate(voucher.ExpiryDate)}</span>
+                    <span className="font-medium">
+                      {formatDate(voucher.ExpiryDate || (voucher as any).expirydate)}
+                    </span>
                   </p>
                 )}
               </div>
@@ -187,7 +193,7 @@ export default function VoucherPage() {
             src="/images/home/no-voucher.png"
             alt="No voucher"
             className="mx-auto mb-4"
-            style={{ width: "200px", height: "150px" }}
+            style={{ width: "250px", height: "150px" }}
           />
           <p className="text-gray-500 font-medium">
             Bạn đang không có khuyến mãi nào

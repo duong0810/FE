@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "KOSMOS DEVELOPMENT",
+    "title": "Kosmos Development",
     "textColor": "black",
     "headerColor": "#ffffff",
     "statusBar": "normal", 
@@ -14,7 +14,7 @@
   "listAsyncJS": [],
   "template": {
     "name": "zaui-fashion",
-    "apiUrl": "https://be-sgv1.onrender.com",
+    "apiUrl": "https://zalo.kosmosdevelopment.com",
     "oaIDtoOpenChat": "4318657068771012646"
   }
 }
