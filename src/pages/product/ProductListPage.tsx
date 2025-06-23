@@ -62,7 +62,7 @@ console.log("ProductListPage loaded");
 import React from "react";
 
 const ProductListPage: React.FC = () => {
-  return <div>Test render</div>;
+  return <div>Test ProductListPage</div>;
 };
 
 export default ProductListPage;
