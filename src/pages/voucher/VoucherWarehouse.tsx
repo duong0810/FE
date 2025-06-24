@@ -140,38 +140,60 @@ export default function VoucherWarehouse() {
 
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
   const handleSelectVoucher = async (voucherId: number) => {
-    const selected = vouchers.find((v) => v.Id === voucherId);
-    if (!selected) return;
+  const selected = vouchers.find((v) => v.Id === voucherId);
+  if (!selected) return;
 
-    if (selected.Quantity !== undefined && selected.Quantity <= 0) {
-      toast.error("Voucher đã hết lượt thu thập!");
-      return;
-    }
+  if (selected.Quantity !== undefined && selected.Quantity <= 0) {
+    toast.error("Voucher đã hết lượt thu thập!");
+    return;
+  }
 
-    try {
-      const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          voucherId: selected.VoucherID ?? selected.Id,
-          zaloId: zaloId
-        }),
-      });
+  try {
+    const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        voucherId: selected.VoucherID ?? selected.Id,
+        zaloId: zaloId
+      }),
+    });
 
-      if (res.ok) {
-        toast.success("Bạn đã thu thập voucher thành công!");
-        fetchVouchers();
-        setTimeout(() => {
-          navigate("/gift");
-        }, 500);
-      } else {
-        const data = await res.json();
-        toast.error(data.error || "Thu thập voucher thất bại!");
+    if (res.ok) {
+      // Lưu vào localStorage giống trang point
+      const stored = localStorage.getItem("selectedVoucher");
+      let selectedList: any[] = [];
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          selectedList = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          selectedList = [];
+        }
       }
-    } catch (err) {
-      toast.error("Có lỗi khi thu thập voucher, vui lòng thử lại!");
+      selectedList = selectedList.map(v => ({ ...v, isNew: false }));
+
+      const wonVoucher = {
+        ...selected,
+        isNew: true,
+        collectedAt: Date.now(),
+        uniqueId: `${selected.Id}_${Date.now()}`
+      };
+      selectedList.push(wonVoucher);
+      localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
+
+      toast.success("Bạn đã thu thập voucher thành công!");
+      fetchVouchers();
+      setTimeout(() => {
+        navigate("/gift");
+      }, 500);
+    } else {
+      const data = await res.json();
+      toast.error(data.error || "Thu thập voucher thất bại!");
     }
-  };
+  } catch (err) {
+    toast.error("Có lỗi khi thu thập voucher, vui lòng thử lại!");
+  }
+};
 
   return (
     <div className="p-4 bg-gradient-to-br from-blue-50 via-yellow-50 to-pink-50 min-h-screen">

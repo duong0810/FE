@@ -39,7 +39,7 @@ export default function Point() {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/banner-headers");
+        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/banner-headers");
         if (!res.ok) throw new Error("Lỗi khi lấy banner");
         const response = await res.json();
         console.log("Banner response:", response);
@@ -67,7 +67,7 @@ export default function Point() {
     const fetchVouchers = async () => {
       setLoading(true);
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
+        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
 
@@ -120,172 +120,193 @@ export default function Point() {
     };
   }, [showModal]);
   
-  const handleSpinClick = async () => {
-    if (isSpinning || wheelVouchers.length === 0) return;
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    setIsSpinning(true);
+const handleSpinClick = async () => {
+  if (isSpinning || wheelVouchers.length === 0) return;
 
-    try {
-      console.log('🎯 Calling spin API...');
-      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin");
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('📊 API Response:', data);
-      
-      if (!data.voucher) {
-        throw new Error('No voucher returned from API');
-      }
-      
-      let winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
-        v.VoucherID === data.voucher.VoucherID ||
-        v.VoucherID === data.voucher.voucherid ||
-        v.Code === data.voucher.Code ||
-        v.Code === data.voucher.code
-      );
-      
-     if (winnerIndex === -1) {
-      winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
+  setIsSpinning(true);
+
+  try {
+    // Quay từ API
+    const response = await fetch("https://zalo.kosmosdevelopment.com//api/vouchers/spin");
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const data = await response.json();
+    if (!data.voucher) throw new Error('No voucher returned from API');
+
+    let winnerIndex = wheelVouchers.findIndex((v: Voucher) =>
+      v.VoucherID === data.voucher.VoucherID ||
+      v.VoucherID === data.voucher.voucherid ||
+      v.Code === data.voucher.Code ||
+      v.Code === data.voucher.code
+    );
+    if (winnerIndex === -1) {
+      winnerIndex = wheelVouchers.findIndex((v: Voucher) =>
         v.description === data.voucher.Description ||
         v.description === data.voucher.description
       );
-      if (winnerIndex === -1) {
-        winnerIndex = 0;
-      }
+      if (winnerIndex === -1) winnerIndex = 0;
     }
 
-    // Thêm log kiểm tra:
-    console.log('Winner index:', winnerIndex);
-    console.log('API voucher:', data.voucher);
-    console.log('FE vouchers:', wheelVouchers.map(v => ({
-      VoucherID: v.VoucherID,
-      Code: v.Code,
-      description: v.description
-    })));
+    setWheelNumber(winnerIndex);
 
-      setWheelNumber(winnerIndex);
+    const segmentAngle = 360 / wheelVouchers.length;
+    const targetAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
+    const spins = 8;
+    const finalRotation = spins * 360 + targetAngle;
 
-      const segmentAngle = 360 / wheelVouchers.length;
-      const targetAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
-      const spins = 8;
-      const finalRotation = spins * 360 + targetAngle;
+    setRotation(finalRotation);
 
-      setRotation(finalRotation);
-
-      setTimeout(() => {
-        setIsSpinning(false);
-        
-        const wonDescription = data.voucher.Description || 
-                             data.voucher.description || 
-                             wheelVouchers[winnerIndex]?.description || 
-                             "Voucher";
-        
-        setWonWheel(wonDescription);
-        setShowConfetti(true);
-        setShowModal(true);
-
-        const stored = localStorage.getItem("selectedVoucher");
-        let selectedList: any[] = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            selectedList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            selectedList = [];
-          }
-        }
-        selectedList = selectedList.map(v => ({ ...v, isNew: false }));
-
-        const wonVoucher = {
-          Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
-          Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
-          Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
-          Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
-          Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
-          // Lấy ngày hết hạn từ nhiều trường khác nhau
-          ExpiryDate:
-            data.voucher.ExpiryDate ||
-            data.voucher.expirydate ||
-            data.voucher.expiredAt ||
-            data.voucher.endDate ||
-            wheelVouchers[winnerIndex]?.ExpiryDate ||
-            wheelVouchers[winnerIndex]?.expirydate ||
-            wheelVouchers[winnerIndex]?.expiredAt ||
-            wheelVouchers[winnerIndex]?.endDate ||
-            "",
-          isNew: true,
-          collectedAt: Date.now(),
-          uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
-          // Thêm các trường khác nếu cần
-        };
-        
-        selectedList.push(wonVoucher);
-        localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
-
-        setRotation(0);
-        setTimeout(() => setShowConfetti(false), 8000);
-      }, 4000);
-
-    } catch (error) {
-      console.error('❌ Spin API error:', error);
+    setTimeout(() => {
       setIsSpinning(false);
-      console.log('🔄 Fallback to local random...');
-      
-      const probabilities = wheelVouchers.map(v => v.probability || 0);
-      let rand = Math.random();
-      let acc = 0;
-      let winnerIndex = 0;
-      for (let i = 0; i < probabilities.length; i++) {
-        acc += probabilities[i];
-        if (rand < acc) {
-          winnerIndex = i;
-          break;
+
+      // Gọi API lưu voucher cho user
+      if (user && user.zaloId && (data.voucher.VoucherID || data.voucher.voucherid)) {
+        fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            zaloId: user.zaloId,
+            voucherId: data.voucher.VoucherID || data.voucher.voucherid
+          })
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (!result.success) {
+              alert(result.error || "Có lỗi khi lưu voucher cho user!");
+            }
+          })
+          .catch(() => {
+            alert("Lỗi kết nối server khi lưu voucher!");
+          });
+      }
+
+      const wonDescription = data.voucher.Description ||
+        data.voucher.description ||
+        wheelVouchers[winnerIndex]?.description ||
+        "Voucher";
+
+      setWonWheel(wonDescription);
+      setShowConfetti(true);
+      setShowModal(true);
+
+      const stored = localStorage.getItem("selectedVoucher");
+      let selectedList: any[] = [];
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          selectedList = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          selectedList = [];
         }
       }
-      setWheelNumber(winnerIndex);
+      selectedList = selectedList.map(v => ({ ...v, isNew: false }));
 
-      const segmentAngle = 360 / wheelVouchers.length;
-      const targetAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
-      const spins = 8;
-      const finalRotation = spins * 360 + targetAngle;
+      const wonVoucher = {
+        Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
+        Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
+        Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
+        Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
+        Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
+        ExpiryDate:
+          data.voucher.ExpiryDate ||
+          data.voucher.expirydate ||
+          data.voucher.expiredAt ||
+          data.voucher.endDate ||
+          wheelVouchers[winnerIndex]?.ExpiryDate ||
+          wheelVouchers[winnerIndex]?.expirydate ||
+          wheelVouchers[winnerIndex]?.expiredAt ||
+          wheelVouchers[winnerIndex]?.endDate ||
+          "",
+        isNew: true,
+        collectedAt: Date.now(),
+        uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
+      };
 
-      setRotation(finalRotation);
+      selectedList.push(wonVoucher);
+      localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
 
-      setTimeout(() => {
-        setIsSpinning(false);
-        setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
-        setShowConfetti(true);
-        setShowModal(true);
+      setRotation(0);
+      setTimeout(() => setShowConfetti(false), 8000);
+    }, 4000);
 
-        const stored = localStorage.getItem("selectedVoucher");
-        let selectedList: any[] = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            selectedList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            selectedList = [];
-          }
-        }
-        selectedList = selectedList.map(v => ({ ...v, isNew: false }));
-
-        const wonVoucher = {
-          ...wheelVouchers[winnerIndex],
-          isNew: true,
-          collectedAt: Date.now(),
-          uniqueId: `${wheelVouchers[winnerIndex]?.Id}_${Date.now()}`
-        };
-        selectedList.push(wonVoucher);
-        localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
-
-        setRotation(0);
-        setTimeout(() => setShowConfetti(false), 8000);
-      }, 4000);
+  } catch (error) {
+    // Fallback random local
+    setIsSpinning(false);
+    const probabilities = wheelVouchers.map(v => v.probability || 0);
+    let rand = Math.random();
+    let acc = 0;
+    let winnerIndex = 0;
+    for (let i = 0; i < probabilities.length; i++) {
+      acc += probabilities[i];
+      if (rand < acc) {
+        winnerIndex = i;
+        break;
+      }
     }
-  };
+    setWheelNumber(winnerIndex);
+
+    const segmentAngle = 360 / wheelVouchers.length;
+    const targetAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
+    const spins = 8;
+    const finalRotation = spins * 360 + targetAngle;
+
+    setRotation(finalRotation);
+
+    setTimeout(() => {
+      setIsSpinning(false);
+
+      // Gọi API lưu voucher cho user (fallback)
+      if (user && user.zaloId && wheelVouchers[winnerIndex]?.VoucherID) {
+        fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            zaloId: user.zaloId,
+            voucherId: wheelVouchers[winnerIndex].VoucherID
+          })
+        })
+          .then(res => res.json())
+          .then(result => {
+            if (!result.success) {
+              alert(result.error || "Có lỗi khi lưu voucher cho user!");
+            }
+          })
+          .catch(() => {
+            alert("Lỗi kết nối server khi lưu voucher!");
+          });
+      }
+
+      setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
+      setShowConfetti(true);
+      setShowModal(true);
+
+      const stored = localStorage.getItem("selectedVoucher");
+      let selectedList: any[] = [];
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          selectedList = Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+          selectedList = [];
+        }
+      }
+      selectedList = selectedList.map(v => ({ ...v, isNew: false }));
+
+      const wonVoucher = {
+        ...wheelVouchers[winnerIndex],
+        isNew: true,
+        collectedAt: Date.now(),
+        uniqueId: `${wheelVouchers[winnerIndex]?.Id}_${Date.now()}`
+      };
+      selectedList.push(wonVoucher);
+      localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
+
+      setRotation(0);
+      setTimeout(() => setShowConfetti(false), 8000);
+    }, 4000);
+  }
+};
 
   const renderWheelSegments = () => {
   if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
