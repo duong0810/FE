@@ -29,15 +29,16 @@ export default function Register() {
               phone: phoneData.phoneNumber,
             };
             fetch("https://zalo.kosmosdevelopment.com/api/auth/register", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                zaloId: userInfo.zaloId,
-                username: userInfo.username,
-                phone: userInfo.phone,
-                fullName: userInfo.username,
-              }),
-            })
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    zaloId: userData.id, // phải là id từ Zalo SDK
+                    username: userData.name,
+                    phone: phoneData.phoneNumber,
+                    fullName: userData.name,
+                    avatar: userData.avatar
+                }),
+                })
               .then((res) => res.json())
               .then((data) => {
                 setLoading(false);
