@@ -280,7 +280,7 @@ export default function Point() {
         setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
         setShowConfetti(true);
         setShowModal(true);
-        
+
         if (user && user.zaloId && wheelVouchers[winnerIndex]) {
                 fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
                   method: "POST",
