@@ -120,6 +120,8 @@ export default function Point() {
     };
   }, [showModal]);
   
+  const user = JSON.parse(localStorage.getItem("user") || "{}"); // hoặc lấy từ context/state nếu có
+
   const handleSpinClick = async () => {
     if (isSpinning || wheelVouchers.length === 0) return;
 
@@ -186,7 +188,26 @@ export default function Point() {
         setWonWheel(wonDescription);
         setShowConfetti(true);
         setShowModal(true);
-
+  // Gọi API lưu voucher cho user
+        if (user && user.zaloId && data.voucher) {
+          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              zaloId: user.zaloId,
+              voucherId: data.voucher.VoucherID || data.voucher.voucherid
+            })
+          })
+            .then(res => res.json())
+            .then(result => {
+              if (!result.success) {
+                alert(result.error || "Có lỗi khi lưu voucher cho user!");
+              }
+            })
+            .catch(() => {
+              alert("Lỗi kết nối server khi lưu voucher!");
+            });
+        }
         const stored = localStorage.getItem("selectedVoucher");
         let selectedList: any[] = [];
         if (stored) {
@@ -259,7 +280,26 @@ export default function Point() {
         setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
         setShowConfetti(true);
         setShowModal(true);
-
+        
+        if (user && user.zaloId && wheelVouchers[winnerIndex]) {
+                fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    zaloId: user.zaloId,
+                    voucherId: wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid
+                  })
+                })
+                  .then(res => res.json())
+                  .then(result => {
+                    if (!result.success) {
+                      alert(result.error || "Có lỗi khi lưu voucher cho user!");
+                    }
+                  })
+                  .catch(() => {
+                    alert("Lỗi kết nối server khi lưu voucher!");
+                  });
+              }
         const stored = localStorage.getItem("selectedVoucher");
         let selectedList: any[] = [];
         if (stored) {
