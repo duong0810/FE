@@ -3,4 +3,5 @@ declare interface Window {
   BASE_PATH?: string;
   APP_CONFIG: any;
   zaloId?: string;
+  ZaloMiniApp: any;
 }
