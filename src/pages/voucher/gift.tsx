@@ -77,6 +77,14 @@ export default function VoucherPage() {
     if (!dateString) return "Không có hạn";
     const date = parseVNDate(dateString);
     if (!date || isNaN(date.getTime())) return "Ngày không hợp lệ";
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
+      // Còn dưới 1 ngày
+      const hours = Math.floor(diff / (60 * 60 * 1000));
+      const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+      return `Còn ${hours}h ${minutes}p`;
+    }
     const d = date.getDate().toString().padStart(2, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
     const y = date.getFullYear();
