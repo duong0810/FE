@@ -1,6 +1,7 @@
 {
   "cwd": "/Users/lap15182-local/Documents/zmp-blank-templates",
   "name": "zmp-blank-templates",
+  "version": "1.0.1",
   "framework": "react-typescript",
   "cssPreProcessor": "scss",
   "includeTailwind": true,
