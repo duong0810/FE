@@ -74,21 +74,21 @@ export default function VoucherPage() {
 
   // Hàm format ngày ra dd/mm/yyyy
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "Không có hạn";
+    if (!dateString) return "";
     const date = parseVNDate(dateString);
-    if (!date || isNaN(date.getTime())) return "Ngày không hợp lệ";
+    if (!date || isNaN(date.getTime())) return "";
     const now = new Date();
     const diff = date.getTime() - now.getTime();
     if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
       // Còn dưới 1 ngày
       const hours = Math.floor(diff / (60 * 60 * 1000));
       const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-      return `Còn ${hours}h ${minutes}p`;
+      return `Hết hạn: ${hours} giờ ${minutes} phút`;
     }
     const d = date.getDate().toString().padStart(2, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
     const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
+    return `Hết hạn: ${d}/${m}/${y}`;
   };
 
   // Kiểm tra mã hợp lệ
@@ -162,26 +162,27 @@ export default function VoucherPage() {
                 {voucher.Description || voucher.description || ""}
               </h3>
 
-              {/* Mã code */}
-              <div className="flex flex-col gap-0.5 mb-1">
-                <div className="flex items-center justify-between">
+              {/* Mã code (chỉ hiện nếu có) */}
+              {voucher.Code && voucher.Code.trim() !== "" && (
+                <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-500">Mã:</span>
                   <span className="bg-blue-50 text-blue-700 font-mono px-1.5 py-0.5 rounded text-xs font-bold select-all">
                     {voucher.Code}
                   </span>
                 </div>
+              )}
 
-                {/* Ngày hết hạn */}
-                {(voucher.ExpiryDate || (voucher as any).expirydate) && (
-                  <p className="text-xs text-gray-500 flex justify-between items-center">
-                    <span>Hết hạn:</span>
-                    <span className="font-medium">
-                      {formatDate(voucher.ExpiryDate || (voucher as any).expirydate)}
-                    </span>
-                  </p>
-                )}
-              </div>
-
+              {/* Ngày hết hạn đẹp như mẫu */}
+              {(voucher.ExpiryDate || (voucher as any).expirydate) && (
+                <p className="text-xs flex items-center gap-1 font-bold"
+                  style={{ color: "#f59e42" }}>
+                  <span className="inline-block" style={{ fontSize: 18 }}>⏰</span>
+                  <span>
+                    {formatDate(voucher.ExpiryDate || (voucher as any).expirydate)}
+                  </span>
+                </p>
+              )}
+            
               {/* Nút áp dụng */}
               <button
                 className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
