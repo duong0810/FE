@@ -161,10 +161,11 @@ export default function VoucherWarehouse() {
 
       if (res.ok) {
         toast.success("Bạn đã thu thập voucher thành công!");
+        await new Promise(r => setTimeout(r, 500));
         fetchVouchers();
         setTimeout(() => {
           navigate("/gift");
-        }, 500);
+        }, 1000);
       } else if (res.status === 409) {
         const data = await res.json();
         toast.error(data.error || "Bạn đã thu thập voucher này hoặc voucher đã hết lượt!");
