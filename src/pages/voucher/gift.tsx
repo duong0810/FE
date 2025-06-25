@@ -6,7 +6,7 @@ type Voucher = {
   Name: string;
   Description: string;
   ExpiryDate?: string;
-  Code: string;
+  Code?: string;
   isNew?: boolean;
   collectedAt?: number;
   uniqueId?: string;
@@ -15,6 +15,8 @@ type Voucher = {
   discount?: number;
   expiryDate?: string;
   expirydate?: string;
+  code?: string;
+  VoucherCode?: string;
 };
 
 // Hàm parse ngày hỗ trợ cả ISO và dd/mm/yyyy
@@ -26,6 +28,32 @@ const parseVNDate = (str?: string) => {
   const [day, month, year] = str.split("/").map(Number);
   if (!day || !month || !year) return null;
   return new Date(year, month - 1, day);
+};
+
+// Hàm lấy mã code từ voucher (ưu tiên các trường có thể có)
+const getVoucherCode = (voucher: Voucher) =>
+  voucher.Code ||
+  voucher.code ||
+  voucher.VoucherCode ||
+  "";
+
+// Hàm format ngày ra dd/mm/yyyy hoặc còn lại bao nhiêu giờ/phút nếu < 1 ngày
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "";
+  const date = parseVNDate(dateString);
+  if (!date || isNaN(date.getTime())) return "";
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+  if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
+    // Còn dưới 1 ngày
+    const hours = Math.floor(diff / (60 * 60 * 1000));
+    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+    return `Hết hạn: ${hours} giờ ${minutes} phút`;
+  }
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear();
+  return `Hết hạn: ${d}/${m}/${y}`;
 };
 
 export default function VoucherPage() {
@@ -41,7 +69,9 @@ export default function VoucherPage() {
     // Lấy voucher đã claim từ backend
     const fetchVouchers = async () => {
       try {
-        const res = await fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${zaloId}`);
+        const res = await fetch(
+          `https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${zaloId}`
+        );
         if (!res.ok) throw new Error("Không lấy được danh sách voucher");
         const data = await res.json();
         // data có thể là mảng hoặc object, tùy backend trả về
@@ -55,7 +85,8 @@ export default function VoucherPage() {
         const now = new Date().getTime();
         const validVouchers = list.filter(
           (v: Voucher) =>
-            !v.ExpiryDate || (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
+            !v.ExpiryDate ||
+            (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
         );
         setSelectedVouchers(validVouchers);
         setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
@@ -72,28 +103,9 @@ export default function VoucherPage() {
     return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
-  // Hàm format ngày ra dd/mm/yyyy
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const date = parseVNDate(dateString);
-    if (!date || isNaN(date.getTime())) return "";
-    const now = new Date();
-    const diff = date.getTime() - now.getTime();
-    if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
-      // Còn dưới 1 ngày
-      const hours = Math.floor(diff / (60 * 60 * 1000));
-      const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-      return `Hết hạn: ${hours} giờ ${minutes} phút`;
-    }
-    const d = date.getDate().toString().padStart(2, "0");
-    const m = (date.getMonth() + 1).toString().padStart(2, "0");
-    const y = date.getFullYear();
-    return `Hết hạn: ${d}/${m}/${y}`;
-  };
-
   // Kiểm tra mã hợp lệ
   const isValidCode = selectedVouchers.some(
-    v => v.Code === searchTerm && searchTerm.trim() !== ""
+    v => getVoucherCode(v) === searchTerm && searchTerm.trim() !== ""
   );
 
   return (
@@ -122,8 +134,7 @@ export default function VoucherPage() {
           className={`px-4 py-2 rounded-lg font-bold transition
             ${isValidCode
               ? "bg-green-500 text-white hover:bg-green-600"
-              : "bg-gray-300 text-gray-500"}
-          `}
+              : "bg-gray-300 text-gray-500"}`}
           disabled={!isValidCode}
         >
           Áp dụng
@@ -133,65 +144,82 @@ export default function VoucherPage() {
       {/* Nếu có voucher đã chọn */}
       {selectedVouchers.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-2 gap-5">
-          {selectedVouchers.map((voucher) => (
-            <div
-              key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
-              className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
-            >
-              {/* Badge "MỚI" */}
-              {voucher.isNew === true && (
-                <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs py-0.5 px-2 rounded-full font-bold shadow-md z-10 border border-white">
-                  MỚI
-                </div>
-              )}
-
-              {/* Icon voucher */}
-              <div className="flex justify-center mb-1">
-                <span className="text-lg">🎫</span>
-              </div>
-
-              {/* Phần giảm giá */}
-              {(voucher.Discount || (voucher as any).discount) > 0 && (
-                <p className="text-base font-bold text-red-700 text-center mb-1">
-                  {parseFloat(voucher.Discount || (voucher as any).discount)} %
-                </p>
-              )}
-
-              {/* Mô tả */}
-              <h3 className="text-xs font-bold text-blue-700 line-clamp-2 mb-1">
-                {voucher.Description || voucher.description || ""}
-              </h3>
-
-              {/* Mã code (chỉ hiện nếu có) */}
-              {voucher.Code && voucher.Code.trim() !== "" && (
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500">Mã:</span>
-                  <span className="bg-blue-50 text-blue-700 font-mono px-1.5 py-0.5 rounded text-xs font-bold select-all">
-                    {voucher.Code}
-                  </span>
-                </div>
-              )}
-
-              {/* Ngày hết hạn đẹp như mẫu */}
-              {(voucher.ExpiryDate || (voucher as any).expirydate) && (
-                <p className="text-xs flex items-center gap-1 font-bold"
-                  style={{ color: "#f59e42" }}>
-                  <span className="inline-block" style={{ fontSize: 18 }}>⏰</span>
-                  <span>
-                    {formatDate(voucher.ExpiryDate || (voucher as any).expirydate)}
-                  </span>
-                </p>
-              )}
-            
-              {/* Nút áp dụng */}
-              <button
-                className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
-                onClick={() => setSearchTerm(voucher.Code)}
+          {selectedVouchers.map((voucher) => {
+            const code = getVoucherCode(voucher);
+            return (
+              <div
+                key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
+                className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
               >
-                Áp dụng
-              </button>
-            </div>
-          ))}
+                {/* Badge "MỚI" */}
+                {voucher.isNew === true && (
+                  <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs py-0.5 px-2 rounded-full font-bold shadow-md z-10 border border-white">
+                    MỚI
+                  </div>
+                )}
+
+                {/* Icon voucher */}
+                <div className="flex justify-center mb-1">
+                  <span className="text-lg">🎫</span>
+                </div>
+
+                {/* Phần giảm giá */}
+                {(voucher.Discount || (voucher as any).discount) > 0 && (
+                  <p className="text-base font-bold text-red-700 text-center mb-1">
+                    {parseFloat(
+                      (voucher.Discount ?? (voucher as any).discount).toString()
+                    )}{" "}
+                    %
+                  </p>
+                )}
+
+                {/* Mô tả */}
+                <h3 className="text-xs font-bold text-blue-700 line-clamp-2 mb-1">
+                  {voucher.Description || voucher.description || ""}
+                </h3>
+
+                {/* Mã code (chỉ hiện nếu có) */}
+                {code && code.trim() !== "" && (
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">Mã:</span>
+                    <span className="bg-blue-50 text-blue-700 font-mono px-1.5 py-0.5 rounded text-xs font-bold select-all">
+                      {code}
+                    </span>
+                  </div>
+                )}
+
+                {/* Ngày hết hạn đẹp như mẫu */}
+                {(voucher.ExpiryDate ||
+                  (voucher as any).expirydate ||
+                  (voucher as any).expiryDate) && (
+                  <p
+                    className="text-xs flex items-center gap-1 font-bold"
+                    style={{ color: "#f59e42" }}
+                  >
+                    <span className="inline-block" style={{ fontSize: 18 }}>
+                      ⏰
+                    </span>
+                    <span>
+                      {formatDate(
+                        voucher.ExpiryDate ||
+                          (voucher as any).expirydate ||
+                          (voucher as any).expiryDate
+                      )}
+                    </span>
+                  </p>
+                )}
+
+                {/* Nút áp dụng */}
+                <button
+                  className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
+                  onClick={() => setSearchTerm(code)}
+                  disabled={!code}
+                >
+                  Áp dụng
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center">
