@@ -33,43 +33,40 @@ export default function VoucherPage() {
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
+  // Lấy zaloId từ localStorage hoặc window
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const zaloId = user.zaloId || window.zaloId || "1234567890";
+
   useEffect(() => {
-    const fetchVouchers = () => {
-      const stored = localStorage.getItem("selectedVoucher");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          const list = Array.isArray(parsed) ? parsed : [parsed];
-          const now = new Date().getTime();
-          const newVoucherCount = list.filter(v => v.isNew === true).length;
-          setDebugInfo(`Có ${newVoucherCount} voucher mới trong localStorage`);
-          const validVouchers = list.filter(
-            (v: Voucher) =>
-              !v.ExpiryDate || (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
-          );
-          const NEW_STATUS_DURATION = 86400000;
-          const updatedVouchers = validVouchers.map((v: Voucher) => {
-            if (v.isNew === true && v.collectedAt && (now - v.collectedAt) > NEW_STATUS_DURATION) {
-              return { ...v, isNew: false };
-            }
-            return v;
-          });
-          updatedVouchers.sort((a, b) => {
-            if (a.isNew === true && b.isNew !== true) return -1;
-            if (a.isNew !== true && b.isNew === true) return 1;
-            return (b.collectedAt || 0) - (a.collectedAt || 0);
-          });
-          setSelectedVouchers(updatedVouchers);
-          localStorage.setItem("selectedVoucher", JSON.stringify(updatedVouchers));
-        } catch (err) {
-          setSelectedVouchers([]);
+    // Lấy voucher đã claim từ backend
+    const fetchVouchers = async () => {
+      try {
+        const res = await fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${zaloId}`);
+        if (!res.ok) throw new Error("Không lấy được danh sách voucher");
+        const data = await res.json();
+        // data có thể là mảng hoặc object, tùy backend trả về
+        let list: Voucher[] = [];
+        if (Array.isArray(data)) {
+          list = data;
+        } else if (data && typeof data === "object") {
+          list = data.data || data.vouchers || data.items || data.result || [];
+          list = Array.isArray(list) ? list : [];
         }
-      } else {
+        const now = new Date().getTime();
+        const validVouchers = list.filter(
+          (v: Voucher) =>
+            !v.ExpiryDate || (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
+        );
+        setSelectedVouchers(validVouchers);
+        setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
+      } catch (err) {
         setSelectedVouchers([]);
+        setDebugInfo("Không lấy được voucher từ backend");
       }
     };
 
     fetchVouchers();
+    // Nếu muốn tự động reload khi quay lại tab:
     const handleFocus = () => fetchVouchers();
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
