@@ -43,13 +43,20 @@ export default function Register() {
               .then((data) => {
                 setLoading(false);
                 if (data.success) {
-                    setUser(userInfo);
-                    // Lưu user vào localStorage để các chức năng khác sử dụng
-                    localStorage.setItem("user", JSON.stringify(userInfo));
+                  // Lưu cả userid (số nguyên) vào localStorage
+                  const userInfo = {
+                    userid: data.userid, // <-- lấy từ response backend
+                    zaloId: userData.id,
+                    username: userData.name,
+                    avatar: userData.avatar,
+                    phone: phoneData.phoneNumber,
+                  };
+                  setUser(userInfo);
+                  localStorage.setItem("user", JSON.stringify(userInfo));
                 } else {
-                    alert(data.error || "Đăng ký thất bại!");
+                  alert(data.error || "Đăng ký thất bại!");
                 }
-                })
+              })
               .catch(() => {
                 setLoading(false);
                 alert("Lỗi kết nối server!");

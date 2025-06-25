@@ -155,7 +155,7 @@ export default function VoucherWarehouse() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           voucherId: selected.VoucherID ?? selected.Id,
-          zaloId: zaloId
+          zaloId: zaloId // <-- chỉ gửi zaloId
         }),
       });
 
