@@ -208,43 +208,43 @@ export default function Point() {
               alert("Lỗi kết nối server khi lưu voucher!");
             });
         }
-        const stored = localStorage.getItem("selectedVoucher");
-        let selectedList: any[] = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            selectedList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            selectedList = [];
-          }
-        }
-        selectedList = selectedList.map(v => ({ ...v, isNew: false }));
+        // const stored = localStorage.getItem("selectedVoucher");
+        // let selectedList: any[] = [];
+        // if (stored) {
+        //   try {
+        //     const parsed = JSON.parse(stored);
+        //     selectedList = Array.isArray(parsed) ? parsed : [parsed];
+        //   } catch {
+        //     selectedList = [];
+        //   }
+        // }
+        // selectedList = selectedList.map(v => ({ ...v, isNew: false }));
 
-        const wonVoucher = {
-          Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
-          Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
-          Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
-          Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
-          Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
-          // Lấy ngày hết hạn từ nhiều trường khác nhau
-          ExpiryDate:
-            data.voucher.ExpiryDate ||
-            data.voucher.expirydate ||
-            data.voucher.expiredAt ||
-            data.voucher.endDate ||
-            wheelVouchers[winnerIndex]?.ExpiryDate ||
-            wheelVouchers[winnerIndex]?.expirydate ||
-            wheelVouchers[winnerIndex]?.expiredAt ||
-            wheelVouchers[winnerIndex]?.endDate ||
-            "",
-          isNew: true,
-          collectedAt: Date.now(),
-          uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
-          // Thêm các trường khác nếu cần
-        };
+        // const wonVoucher = {
+        //   Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
+        //   Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
+        //   Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
+        //   Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
+        //   Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
+        //   // Lấy ngày hết hạn từ nhiều trường khác nhau
+        //   ExpiryDate:
+        //     data.voucher.ExpiryDate ||
+        //     data.voucher.expirydate ||
+        //     data.voucher.expiredAt ||
+        //     data.voucher.endDate ||
+        //     wheelVouchers[winnerIndex]?.ExpiryDate ||
+        //     wheelVouchers[winnerIndex]?.expirydate ||
+        //     wheelVouchers[winnerIndex]?.expiredAt ||
+        //     wheelVouchers[winnerIndex]?.endDate ||
+        //     "",
+        //   isNew: true,
+        //   collectedAt: Date.now(),
+        //   uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
+        //   // Thêm các trường khác nếu cần
+        // };
         
-        selectedList.push(wonVoucher);
-        localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
+        // selectedList.push(wonVoucher);
+        // localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
 
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
@@ -300,26 +300,26 @@ export default function Point() {
                     alert("Lỗi kết nối server khi lưu voucher!");
                   });
               }
-        const stored = localStorage.getItem("selectedVoucher");
-        let selectedList: any[] = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            selectedList = Array.isArray(parsed) ? parsed : [parsed];
-          } catch {
-            selectedList = [];
-          }
-        }
-        selectedList = selectedList.map(v => ({ ...v, isNew: false }));
+        // const stored = localStorage.getItem("selectedVoucher");
+        // let selectedList: any[] = [];
+        // if (stored) {
+        //   try {
+        //     const parsed = JSON.parse(stored);
+        //     selectedList = Array.isArray(parsed) ? parsed : [parsed];
+        //   } catch {
+        //     selectedList = [];
+        //   }
+        // }
+        // selectedList = selectedList.map(v => ({ ...v, isNew: false }));
 
-        const wonVoucher = {
-          ...wheelVouchers[winnerIndex],
-          isNew: true,
-          collectedAt: Date.now(),
-          uniqueId: `${wheelVouchers[winnerIndex]?.Id}_${Date.now()}`
-        };
-        selectedList.push(wonVoucher);
-        localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
+        // const wonVoucher = {
+        //   ...wheelVouchers[winnerIndex],
+        //   isNew: true,
+        //   collectedAt: Date.now(),
+        //   uniqueId: `${wheelVouchers[winnerIndex]?.Id}_${Date.now()}`
+        // };
+        // selectedList.push(wonVoucher);
+        // localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
 
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
