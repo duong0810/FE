@@ -166,7 +166,9 @@ export default function VoucherWarehouse() {
           navigate("/gift");
         }, 500);
       } else if (res.status === 409) {
-        toast.error("Bạn đã thu thập voucher này hoặc voucher đã hết lượt!");
+        const data = await res.json();
+        toast.error(data.error || "Bạn đã thu thập voucher này hoặc voucher đã hết lượt!");
+        console.log('409 conflict:', data);
       } else {
         const data = await res.json();
         toast.error(data.error || "Thu thập voucher thất bại!");
