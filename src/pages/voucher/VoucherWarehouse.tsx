@@ -184,7 +184,7 @@ export default function VoucherWarehouse() {
       <div className="flex justify-end mb-2">
         <button
           onClick={() => navigate("/point")}
-          className="bg-blue-400 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded shadow transition"
+          className="bg-blue-400 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow transition"
         >
           🎡 Vòng quay may mắn
         </button>

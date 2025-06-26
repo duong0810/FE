@@ -83,11 +83,17 @@ export default function VoucherPage() {
           list = Array.isArray(list) ? list : [];
         }
         const now = new Date().getTime();
-        const validVouchers = list.filter(
-          (v: Voucher) =>
-            !v.ExpiryDate ||
-            (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
-        );
+        const validVouchers = list
+          .filter(
+            (v: Voucher) =>
+              !v.ExpiryDate ||
+              (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
+          )
+          .map((v: Voucher) => ({
+            ...v,
+            // Luôn trả về boolean true/false cho isNew
+            isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
+          }));
         setSelectedVouchers(validVouchers);
         setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
       } catch (err) {
@@ -140,8 +146,6 @@ export default function VoucherPage() {
           Áp dụng
         </button>
       </div>
-
-      {/* Nếu có voucher đã chọn */}
       {selectedVouchers.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-2 gap-5">
           {selectedVouchers.map((voucher) => {
@@ -163,51 +167,62 @@ export default function VoucherPage() {
                   <span className="text-lg">🎫</span>
                 </div>
 
-                {/* Phần giảm giá */}
-                {(voucher.Discount || (voucher as any).discount) > 0 && (
-                  <p className="text-base font-bold text-red-700 text-center mb-1">
-                    {parseFloat(
-                      (voucher.Discount ?? (voucher as any).discount).toString()
-                    )}{" "}
-                    %
-                  </p>
-                )}
-
-                {/* Mô tả */}
-                <h3 className="text-xs font-bold text-blue-700 line-clamp-2 mb-1">
-                  {voucher.Description || voucher.description || ""}
-                </h3>
-
-                {/* Mã code (chỉ hiện nếu có) */}
-                {code && code.trim() !== "" && (
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500">Mã:</span>
-                    <span className="bg-blue-50 text-blue-700 font-mono px-1.5 py-0.5 rounded text-xs font-bold select-all">
-                      {code}
+                {/* Dòng 1: Discount hoặc Tên voucher */}
+                <div className="h-6 flex items-center justify-center mb-1">
+                  {(voucher.Discount || (voucher as any).discount) > 0 ? (
+                    <span className="text-base font-bold text-red-700 text-center">
+                      {parseFloat(
+                        (voucher.Discount ?? (voucher as any).discount).toString()
+                      )} %
                     </span>
-                  </div>
-                )}
+                  ) : (
+                    <span className="text-base font-bold text-blue-700 text-center">
+                      {voucher.Name || ""}
+                    </span>
+                  )}
+                </div>
 
-                {/* Ngày hết hạn đẹp như mẫu */}
-                {(voucher.ExpiryDate ||
-                  (voucher as any).expirydate ||
-                  (voucher as any).expiryDate) && (
-                  <p
-                    className="text-xs flex items-center gap-1 font-bold"
-                    style={{ color: "#f59e42" }}
-                  >
-                    <span className="inline-block" style={{ fontSize: 18 }}>
-                      ⏰
-                    </span>
-                    <span>
-                      {formatDate(
-                        voucher.ExpiryDate ||
-                          (voucher as any).expirydate ||
-                          (voucher as any).expiryDate
-                      )}
-                    </span>
-                  </p>
-                )}
+                {/* Dòng 2: Mô tả (luôn giữ chỗ, luôn hiện) */}
+                <div className="min-h-[20px] flex items-center justify-center mb-1">
+                  <span className="text-xs font-bold text-blue-700 text-center w-full truncate">
+                    {voucher.Description || voucher.description || ""}
+                  </span>
+                </div>
+
+                {/* Dòng 3: Mã code */}
+                <div className="flex items-center justify-between mb-1 min-h-[24px]">
+                  {code && code.trim() !== "" ? (
+                    <>
+                      <span className="text-xs text-gray-500">Mã:</span>
+                      <span className="bg-blue-50 text-blue-700 font-mono px-1.5 py-0.5 rounded text-xs font-bold select-all">
+                        {code}
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+
+                {/* Dòng 4: Ngày hết hạn */}
+                <div className="min-h-[18px] flex items-center mb-1">
+                  {(voucher.ExpiryDate ||
+                    (voucher as any).expirydate ||
+                    (voucher as any).expiryDate) ? (
+                    <p
+                      className="text-[10px] flex items-center gap-1 font-bold"
+                      style={{ color: "#f59e42" }}
+                    >
+                      <span className="inline-block" style={{ fontSize: 18 }}>
+                        ⏰
+                      </span>
+                      <span>
+                        {formatDate(
+                          voucher.ExpiryDate ||
+                            (voucher as any).expirydate ||
+                            (voucher as any).expiryDate
+                        )}
+                      </span>
+                    </p>
+                  ) : null}
+                </div>
 
                 {/* Nút áp dụng */}
                 <button

@@ -1,7 +1,42 @@
 import React, { useState } from "react";
 
+const testUsers = [
+  {
+    id: "testid1",
+    name: "User 1",
+    avatar: "https://i.pravatar.cc/150?img=1",
+    phone: "0123456781",
+  },
+  {
+    id: "testid2",
+    name: "User 2",
+    avatar: "https://i.pravatar.cc/150?img=2",
+    phone: "0123456782",
+  },
+  {
+    id: "testid3",
+    name: "User 3",
+    avatar: "https://i.pravatar.cc/150?img=3",
+    phone: "0123456783",
+  },
+  {
+    id: "testid4",
+    name: "User 4",
+    avatar: "https://i.pravatar.cc/150?img=4",
+    phone: "0123456784",
+  },
+  {
+    id: "testid5",
+    name: "User 5",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    phone: "0123456785",
+  },
+];
+
 export default function Register() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(
+    () => JSON.parse(localStorage.getItem("user") || "null")
+  );
   const [loading, setLoading] = useState(false);
 
   function handleRegister() {
@@ -29,23 +64,22 @@ export default function Register() {
               phone: phoneData.phoneNumber,
             };
             fetch("https://zalo.kosmosdevelopment.com/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    zaloId: userData.id, // phải là id từ Zalo SDK
-                    username: userData.name,
-                    phone: phoneData.phoneNumber,
-                    fullName: userData.name,
-                    avatar: userData.avatar
-                }),
-                })
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                zaloId: userData.id,
+                username: userData.name,
+                phone: phoneData.phoneNumber,
+                fullName: userData.name,
+                avatar: userData.avatar,
+              }),
+            })
               .then((res) => res.json())
               .then((data) => {
                 setLoading(false);
                 if (data.success) {
-                  // Lưu cả userid (số nguyên) vào localStorage
                   const userInfo = {
-                    userid: data.userid, // <-- lấy từ response backend
+                    userid: data.userid,
                     zaloId: userData.id,
                     username: userData.name,
                     avatar: userData.avatar,
@@ -75,6 +109,43 @@ export default function Register() {
     });
   }
 
+  // Đăng nhập nhanh bằng tài khoản test
+  function handleRegisterTestUser(u: any) {
+    setLoading(true);
+    fetch("https://zalo.kosmosdevelopment.com/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        zaloId: u.id,
+        username: u.name,
+        phone: u.phone,
+        fullName: u.name,
+        avatar: u.avatar,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setLoading(false);
+        if (data.success) {
+          const userInfo = {
+            userid: data.userid,
+            zaloId: u.id,
+            username: u.name,
+            avatar: u.avatar,
+            phone: u.phone,
+          };
+          setUser(userInfo);
+          localStorage.setItem("user", JSON.stringify(userInfo));
+        } else {
+          alert(data.error || "Đăng ký thất bại!");
+        }
+      })
+      .catch(() => {
+        setLoading(false);
+        alert("Lỗi kết nối server!");
+      });
+  }
+
   if (user) {
     return <ProfileInfo user={user} setUser={setUser} />;
   }
@@ -88,8 +159,24 @@ export default function Register() {
           <p className="text-gray-700 mb-4">
             Đăng ký thành viên để tận hưởng ngàn ưu đãi đặc quyền chỉ dành riêng cho bạn &lt;3
           </p>
+          <div className="mb-4">
+            <div className="font-semibold mb-2">Chọn tài khoản test:</div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {testUsers.map((u) => (
+                <button
+                  key={u.id}
+                  className="px-3 py-1 rounded bg-blue-100 hover:bg-blue-300 text-blue-700 font-bold text-xs"
+                  onClick={() => handleRegisterTestUser(u)}
+                  disabled={loading}
+                >
+                  <img src={u.avatar} alt={u.name} className="inline w-6 h-6 rounded-full mr-1" />
+                  {u.name}
+                </button>
+              ))}
+            </div>
+          </div>
           <button
-            className="mt-auto bg-gradient-to-r from-blue-300 to-blue-500 text-white px-3 py-1.5 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-xs disabled:opacity-60 w-full"
+            className="mt-auto bg-gradient-to-r from-blue-300 to-blue-500 text-white px-3 py-1.5 rounded-lg font-bold shadow hover:from-blue-500 hover:to-blue-600 transition text-xs disabled:opacity-60 w-full"
             onClick={handleRegister}
             disabled={loading}
           >
@@ -149,6 +236,15 @@ function ProfileInfo({ user, setUser }: { user: any; setUser: any }) {
             <ProfileField label="Ngày sinh" value={user.birthday || "--"} />
             <ProfileField label="Số điện thoại" value={user.phone} />
           </div>
+          <button
+            className="mt-4 px-3 py-1 rounded bg-red-100 text-red-700 font-bold text-xs"
+            onClick={() => {
+              setUser(null);
+              localStorage.removeItem("user");
+            }}
+          >
+            Đăng xuất
+          </button>
         </div>
       </div>
       {showEdit && (
@@ -176,7 +272,6 @@ function EditProfileModal({
     district: user.district || "",
     ward: user.ward || "",
     address: user.address || "",
-    // Thêm các trường khác nếu muốn
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -188,35 +283,35 @@ function EditProfileModal({
   }
 
   function handleSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  fetch("https://zalo.kosmosdevelopment.com/api/auth/update", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      zaloId: user.zaloId,
-      username: form.username,
-      gender: form.gender,
-      birthday: form.birthday,
-      city: form.city,
-      district: form.district,
-      ward: form.ward,
-      address: form.address,
-    }),
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        alert("Cập nhật thành công!");
-        setUser({ ...user, ...form });
-        onClose();
-      } else {
-        alert(data.error || "Cập nhật thất bại!");
-      }
+    e.preventDefault();
+    fetch("https://zalo.kosmosdevelopment.com/api/auth/update", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        zaloId: user.zaloId,
+        username: form.username,
+        gender: form.gender,
+        birthday: form.birthday,
+        city: form.city,
+        district: form.district,
+        ward: form.ward,
+        address: form.address,
+      }),
     })
-    .catch(() => {
-      alert("Lỗi kết nối server!");
-    });
-}
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          alert("Cập nhật thành công!");
+          setUser({ ...user, ...form });
+          onClose();
+        } else {
+          alert(data.error || "Cập nhật thất bại!");
+        }
+      })
+      .catch(() => {
+        alert("Lỗi kết nối server!");
+      });
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -270,7 +365,6 @@ function EditProfileModal({
             disabled
           />
         </label>
-        {/* Thêm các trường địa chỉ */}
         <label className="block mb-2 font-medium">
           <span className="text-red-500">*</span> Thành phố / Tỉnh
           <input
@@ -313,7 +407,6 @@ function EditProfileModal({
             required
           />
         </label>
-        {/* ...các trường khác nếu muốn... */}
         <div className="flex gap-2 mt-4">
           <button
             type="button"

@@ -330,8 +330,8 @@ export default function Point() {
   const renderWheelSegments = () => {
   if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
   const segmentColors = [
-    "#FFFBEA", "#FFFFFF", "#FFE4B2", "#FFF8DC",
-    "#FFFACD", "#FFF0F5", "#FFFAF0", "#FFF5E1"
+    "#FFFBEA", "#FFFFFF", "#FFFAF0", "#FFF8DC",
+    "#FFF0F5", "#FFF0F5", "#FFFAF0", "#FFF5E1"
   ];
   const segmentAngle = 360 / wheelVouchers.length;
 
@@ -523,6 +523,7 @@ export default function Point() {
       )}
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+        
         <div className="text-center mb-8">
           <h1 className="text-2xl md:text-5xl font-black text-yellow-300 mb-2 drop-shadow-2xl"
               style={{ fontFamily: 'serif', textShadow: '4px 4px 0px #8B0000' }}>
