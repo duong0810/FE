@@ -20,6 +20,8 @@ type Voucher = {
 };
 
 export default function Point() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
@@ -35,6 +37,15 @@ export default function Point() {
     header2: "",
     header3: ""
   });
+  const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
+
+  useEffect(() => {
+    if (!user?.zaloId) return;
+    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${user.zaloId}`)
+      .then(res => res.json())
+      .then(data => setUserVouchers(Array.isArray(data) ? data : data.data || []))
+      .catch(() => setUserVouchers([]));
+  }, [user?.zaloId, showModal]);
 
   useEffect(() => {
     const fetchBanner = async () => {
@@ -120,7 +131,6 @@ export default function Point() {
     };
   }, [showModal]);
   
-  const user = JSON.parse(localStorage.getItem("user") || "{}"); // hoặc lấy từ context/state nếu có
 
   const handleSpinClick = async () => {
     if (isSpinning || wheelVouchers.length === 0) return;
@@ -129,12 +139,19 @@ export default function Point() {
 
     try {
       console.log('🎯 Calling spin API...');
-      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/spin");
-      
+      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/spin-wheel-limit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zaloId: user.zaloId })
+      });
+
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errData = await response.json();
+        alert(errData.error || "Bạn đã hết lượt quay!");
+        setIsSpinning(false);
+        return;
       }
-      
+
       const data = await response.json();
       console.log('📊 API Response:', data);
       
@@ -189,25 +206,25 @@ export default function Point() {
         setShowConfetti(true);
         setShowModal(true);
       // Gọi API lưu voucher cho user
-        if (user && user.zaloId && data.voucher) {
-          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              zaloId: user.zaloId,
-              voucherId: data.voucher.VoucherID || data.voucher.voucherid
-            })
-          })
-            .then(res => res.json())
-            .then(result => {
-              if (!result.success) {
-                alert(result.error || "Có lỗi khi lưu voucher cho user!");
-              }
-            })
-            .catch(() => {
-              alert("Lỗi kết nối server khi lưu voucher!");
-            });
-        }
+        // if (user && user.zaloId && data.voucher) {
+        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+        //     method: "POST",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: JSON.stringify({
+        //       zaloId: user.zaloId,
+        //       voucherId: data.voucher.VoucherID || data.voucher.voucherid
+        //     })
+        //   })
+        //     .then(res => res.json())
+        //     .then(result => {
+        //       if (!result.success) {
+        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
+        //       }
+        //     })
+        //     .catch(() => {
+        //       alert("Lỗi kết nối server khi lưu voucher!");
+        //     });
+        // }
         // const stored = localStorage.getItem("selectedVoucher");
         // let selectedList: any[] = [];
         // if (stored) {
@@ -330,8 +347,8 @@ export default function Point() {
   const renderWheelSegments = () => {
   if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
   const segmentColors = [
-    "#FFFBEA", "#FFFFFF", "#FFFAF0", "#FFF8DC",
-    "#FFF0F5", "#FFF0F5", "#FFFAF0", "#FFF5E1"
+    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
+    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
   ];
   const segmentAngle = 360 / wheelVouchers.length;
 

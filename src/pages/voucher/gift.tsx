@@ -86,7 +86,7 @@ export default function VoucherPage() {
         const validVouchers = list
           .filter(
             (v: Voucher) =>
-              !v.ExpiryDate ||
+              !v.ExpiryDate  ||
               (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
           )
           .map((v: Voucher) => ({
@@ -147,21 +147,43 @@ export default function VoucherPage() {
         </button>
       </div>
       {selectedVouchers.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 gap-5">
-          {selectedVouchers.map((voucher) => {
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-5">
+        {
+          // Group voucher theo Code (ưu tiên) hoặc Id
+          Object.values(
+            selectedVouchers.reduce((acc, voucher) => {
+              const code = getVoucherCode(voucher);
+              const key = code || voucher.Id;
+              if (!acc[key]) {
+                acc[key] = { ...voucher, count: 1 };
+              } else {
+                acc[key].count += 1;
+                // Nếu có voucher mới, giữ trạng thái isNew = true
+                if (voucher.isNew) acc[key].isNew = true;
+              }
+              return acc;
+            }, {} as Record<string, any>)
+          ).map((voucher: any) => {
             const code = getVoucherCode(voucher);
             return (
               <div
                 key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
                 className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
               >
+                {/* Badge x2, x3,... */}
+                {voucher.count > 1 && (
+                  <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow z-10">
+                    x{voucher.count}
+                  </div>
+                )}
+
                 {/* Badge "MỚI" */}
                 {voucher.isNew === true && (
                   <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs py-0.5 px-2 rounded-full font-bold shadow-md z-10 border border-white">
                     MỚI
                   </div>
                 )}
-
+                
                 {/* Icon voucher */}
                 <div className="flex justify-center mb-1">
                   <span className="text-lg">🎫</span>
