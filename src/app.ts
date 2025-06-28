@@ -25,3 +25,4 @@ if (!window.APP_CONFIG) {
 const root = createRoot(document.getElementById("app")!);
 root.render(createElement(RouterProvider, { router }));
  
+console.log("App version: 20250628");
