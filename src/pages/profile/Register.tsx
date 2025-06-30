@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { openChat } from "zmp-sdk";
 
 const testUsers = [
   {
@@ -190,7 +191,13 @@ export default function Register() {
 
 function ProfileInfo({ user, setUser }: { user: any; setUser: any }) {
   const [showEdit, setShowEdit] = useState(false);
-
+   // Hàm mở chat với OA
+  function handleChatOA() {
+    openChat({
+      type: "oa",
+      id: "4128046421606951990", // Thay bằng OA ID thật của bạn
+    });
+  }
   return (
     <div className="min-h-full bg-gray-50 pb-20">
       <div className="p-4">
@@ -244,6 +251,12 @@ function ProfileInfo({ user, setUser }: { user: any; setUser: any }) {
             }}
           >
             Đăng xuất
+          </button>
+          <button
+            className="mt-2 px-3 py-1 rounded bg-green-100 text-green-700 font-bold text-xs"
+            onClick={handleChatOA}
+          >
+            Chat với OA
           </button>
         </div>
       </div>

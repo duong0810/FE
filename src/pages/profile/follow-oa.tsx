@@ -1,9 +1,16 @@
 import { useEffect } from "react";
-import { showOAWidget } from "zmp-sdk";
+import { showOAWidget, openChat } from "zmp-sdk";
 import { useNavigate } from "react-router-dom";
 
 export default function FollowOAWidget() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Không cần nếu không dùng nữa
+
+  const handleChatOA = () => {
+    openChat({
+      type: "oa",
+      id: "4128046421606951990", // Thay bằng OA ID thật của bạn
+    });
+  };
 
   useEffect(() => {
     showOAWidget({
@@ -13,18 +20,17 @@ export default function FollowOAWidget() {
     });
   }, []);
 
-  const handleNavigateToVoucher = () => {
-    navigate("/voucher-warehouse"); // Điều hướng đến trang "Đổi voucher"
-  };
-
   return (
     <div>
       <div id="oaWidget" />
       <button
-        onClick={handleNavigateToVoucher}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"      >
+        onClick={handleChatOA}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+      >
         Quan tâm
       </button>
     </div>
   );
 }
+
+  
