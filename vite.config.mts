@@ -18,7 +18,7 @@ export default () => {
       },
     },
     build: {
-      outDir: "dist",
+      outDir: "www",
       assetsDir: "assets",
       rollupOptions: {
         output: {
