@@ -1,6 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import zmp from 'zmp-sdk';
 
+// Extend Window interface for Zalo app detection
+declare global {
+  interface Window {
+    ZaloJavaScriptInterface?: any;
+    webkit?: {
+      messageHandlers?: {
+        ZaloJavaScriptInterface?: any;
+      };
+    };
+  }
+}
+
 interface User {
   zaloId: string;
   name?: string;
@@ -42,8 +54,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // Lấy access token từ Zalo
+      // Kiểm tra xem có đang chạy trong Zalo app không
+      const isInZaloApp = window.ZaloJavaScriptInterface || window.webkit?.messageHandlers?.ZaloJavaScriptInterface;
+      
+      if (!isInZaloApp) {
+        console.log('🔧 Not in Zalo app, using test user');
+        // Fallback: sử dụng user test cho development
+        const testUser = {
+          zaloId: 'dev_user_' + Date.now(),
+          name: 'Development User',
+          avatar: ''
+        };
+        setUser(testUser);
+        localStorage.setItem('user', JSON.stringify(testUser));
+        return;
+      }
+
+      // Thử lấy access token từ Zalo
       const accessToken = await zmp.getAccessToken();
+      
+      if (!accessToken) {
+        throw new Error('Cannot get access token');
+      }
       
       // Gọi API backend để đăng nhập
       const response = await fetch('https://zalo.kosmosdevelopment.com/api/auth/zalo-login', {
@@ -53,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        throw new Error('Login API failed');
       }
 
       const result = await response.json();
@@ -71,15 +103,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Invalid user data from server');
       }
     } catch (error) {
-      console.error('Zalo login error:', error);
+      console.warn('⚠️ Zalo login error:', error);
+      
       // Fallback: sử dụng user test cho development
       const testUser = {
         zaloId: 'test_user_' + Date.now(),
-        name: 'Test User',
+        name: 'Test User (Fallback)',
         avatar: ''
       };
       setUser(testUser);
       localStorage.setItem('user', JSON.stringify(testUser));
+      
+      // Thông báo cho user biết đang dùng chế độ test
+      if (typeof window !== 'undefined' && window.console) {
+        console.info('🧪 Using test mode due to Zalo login error');
+      }
     } finally {
       setIsLoading(false);
     }

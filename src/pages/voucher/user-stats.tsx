@@ -24,10 +24,15 @@ export default function UserStatsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Auto login nếu chưa đăng nhập
+  // Auto login nếu chưa đăng nhập - nhưng không force
   useEffect(() => {
     if (!isAuthenticated && !user) {
-      loginWithZalo();
+      // Chỉ auto-login nếu không có user và chưa từng thử login
+      const hasAttemptedLogin = localStorage.getItem('attempted_login');
+      if (!hasAttemptedLogin) {
+        localStorage.setItem('attempted_login', 'true');
+        loginWithZalo();
+      }
     }
   }, [isAuthenticated, user, loginWithZalo]);
 

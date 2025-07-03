@@ -23,7 +23,7 @@ type Voucher = {
 };
 
 export default function Point() {
-  const { user, isAuthenticated, loginWithZalo } = useAuth();
+  const { user, isAuthenticated, loginWithZalo, isLoading } = useAuth();
   
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -42,10 +42,46 @@ export default function Point() {
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
 
-  // Auto login nếu chưa đăng nhập
+  // Show loading screen nếu chưa có user
+  if (!user?.zaloId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-600 via-red-500 to-red-700">
+        <div className="text-center bg-white/90 backdrop-blur-sm rounded-xl p-8 max-w-sm mx-4">
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Đang đăng nhập...</p>
+            </>
+          ) : (
+            <>
+              <div className="text-6xl mb-4">🎯</div>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Vòng quay may mắn</h2>
+              <p className="text-gray-600 mb-6">Vui lòng đăng nhập để tham gia</p>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('attempted_login');
+                  loginWithZalo();
+                }}
+                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-lg font-bold hover:from-red-700 hover:to-red-800 transition"
+              >
+                🔑 Đăng nhập với Zalo
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Auto login nếu chưa đăng nhập - nhưng không force
   useEffect(() => {
     if (!isAuthenticated && !user) {
-      loginWithZalo();
+      // Chỉ auto-login nếu không có user và chưa từng thử login
+      const hasAttemptedLogin = localStorage.getItem('attempted_login');
+      if (!hasAttemptedLogin) {
+        localStorage.setItem('attempted_login', 'true');
+        loginWithZalo();
+      }
     }
   }, [isAuthenticated, user, loginWithZalo]);
 
