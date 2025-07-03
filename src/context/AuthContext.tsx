@@ -1,17 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import zmp from 'zmp-sdk';
-
-// Extend Window interface for Zalo app detection
-declare global {
-  interface Window {
-    ZaloJavaScriptInterface?: any;
-    webkit?: {
-      messageHandlers?: {
-        ZaloJavaScriptInterface?: any;
-      };
-    };
-  }
-}
+import { ZaloSDKWrapper } from '@/utils/zalo-sdk';
 
 interface User {
   zaloId: string;
@@ -54,70 +42,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // Kiểm tra xem có đang chạy trong Zalo app không
-      const isInZaloApp = window.ZaloJavaScriptInterface || window.webkit?.messageHandlers?.ZaloJavaScriptInterface;
+      // Thử lấy access token bằng wrapper an toàn
+      const accessToken = await ZaloSDKWrapper.getAccessToken();
       
-      if (!isInZaloApp) {
-        console.log('🔧 Not in Zalo app, using test user');
-        // Fallback: sử dụng user test cho development
-        const testUser = {
-          zaloId: 'dev_user_' + Date.now(),
-          name: 'Development User',
-          avatar: ''
-        };
+      if (!accessToken) {
+        console.log('🔧 Cannot get Zalo access token, using test user');
+        // Fallback: sử dụng user test
+        const testUser = ZaloSDKWrapper.createTestUser();
         setUser(testUser);
         localStorage.setItem('user', JSON.stringify(testUser));
         return;
       }
-
-      // Thử lấy access token từ Zalo
-      const accessToken = await zmp.getAccessToken();
       
-      if (!accessToken) {
-        throw new Error('Cannot get access token');
-      }
-      
-      // Gọi API backend để đăng nhập
-      const response = await fetch('https://zalo.kosmosdevelopment.com/api/auth/zalo-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken })
-      });
+      // Thử gọi API backend để đăng nhập
+      try {
+        const response = await fetch('https://zalo.kosmosdevelopment.com/api/auth/zalo-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessToken })
+        });
 
-      if (!response.ok) {
-        throw new Error('Login API failed');
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (result.user && result.user.zaloId) {
+            const userData = {
+              zaloId: result.user.zaloId,
+              name: result.user.name,
+              avatar: result.user.avatar
+            };
+            
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.warn('⚠️ Backend API error:', apiError);
       }
 
-      const result = await response.json();
+      // Fallback: Dùng access token làm zaloId tạm thời
+      const fallbackUser = {
+        zaloId: `zalo_${accessToken.slice(-10)}`,
+        name: 'Zalo User',
+        avatar: ''
+      };
+      setUser(fallbackUser);
+      localStorage.setItem('user', JSON.stringify(fallbackUser));
       
-      if (result.user && result.user.zaloId) {
-        const userData = {
-          zaloId: result.user.zaloId,
-          name: result.user.name,
-          avatar: result.user.avatar
-        };
-        
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        throw new Error('Invalid user data from server');
-      }
     } catch (error) {
       console.warn('⚠️ Zalo login error:', error);
       
-      // Fallback: sử dụng user test cho development
-      const testUser = {
-        zaloId: 'test_user_' + Date.now(),
-        name: 'Test User (Fallback)',
-        avatar: ''
-      };
+      // Final fallback: sử dụng user test
+      const testUser = ZaloSDKWrapper.createTestUser();
       setUser(testUser);
       localStorage.setItem('user', JSON.stringify(testUser));
       
-      // Thông báo cho user biết đang dùng chế độ test
-      if (typeof window !== 'undefined' && window.console) {
-        console.info('🧪 Using test mode due to Zalo login error');
-      }
+      console.info('🧪 Using test mode due to Zalo login error');
     } finally {
       setIsLoading(false);
     }
