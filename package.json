@@ -57,6 +57,7 @@
     "rimraf": "^5.0.10",
     "sass": "^1.89.1",
     "tailwindcss": "^3.4.3",
+    "terser": "^5.43.1",
     "vite": "^5.2.13",
     "vite-plugin-tailwind": "^0.0.4",
     "zmp-vite-plugin": "^1.1.6"
