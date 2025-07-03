@@ -25,6 +25,16 @@ export default function ProfileActions() {
           icon: VoucherIcon,
           onClick: () => navigate("/gift"), // Điều hướng đến trang gift
         },
+        {
+          label: "Thống kê voucher",
+          icon: PackageIcon,
+          onClick: () => navigate("/user-stats"), // Điều hướng đến trang thống kê
+        },
+        {
+          label: "Lịch sử đơn hàng",
+          icon: OrderHistoryIcon,
+          onClick: toBeImplemented,
+        },
         ].map((action) => (
         <div
           key={action.label}

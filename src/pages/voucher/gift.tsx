@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 // Kiểu dữ liệu voucher
 type Voucher = {
@@ -57,20 +58,26 @@ const formatDate = (dateString?: string) => {
 };
 
 export default function VoucherPage() {
+  const { user, isAuthenticated, loginWithZalo } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
-  // Lấy zaloId từ localStorage hoặc window
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const zaloId = user.zaloId || window.zaloId || "1234567890";
+  // Auto login nếu chưa đăng nhập
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      loginWithZalo();
+    }
+  }, [isAuthenticated, user, loginWithZalo]);
 
   useEffect(() => {
     // Lấy voucher đã claim từ backend
     const fetchVouchers = async () => {
+      if (!user?.zaloId) return;
+      
       try {
         const res = await fetch(
-          `https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${zaloId}`
+          `https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${user.zaloId}`
         );
         if (!res.ok) throw new Error("Không lấy được danh sách voucher");
         const data = await res.json();
@@ -107,7 +114,7 @@ export default function VoucherPage() {
     const handleFocus = () => fetchVouchers();
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  }, []);
+  }, [user?.zaloId]);
 
   // Kiểm tra mã hợp lệ
   const isValidCode = selectedVouchers.some(

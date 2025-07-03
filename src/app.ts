@@ -4,6 +4,9 @@ import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 
+// Auth Context
+import { AuthProvider } from "@/context/AuthContext";
+
 // Router
 import router from "@/router";
 
@@ -21,8 +24,10 @@ if (!window.APP_CONFIG) {
   window.APP_CONFIG = appConfig;
 }
 
-// Mount the app
+// Mount the app with AuthProvider
 const root = createRoot(document.getElementById("app")!);
-root.render(createElement(RouterProvider, { router }));
+root.render(
+  createElement(AuthProvider, { children: createElement(RouterProvider, { router }) })
+);
  
 console.log("App version: 20250628");

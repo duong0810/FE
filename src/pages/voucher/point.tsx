@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 
 // Định nghĩa kiểu dữ liệu cho voucher - sửa để cho phép undefined
@@ -17,10 +18,12 @@ type Voucher = {
   [key: string]: any;
   expirydate?: string; // ✅ Cho phép undefined
   ExpiryDate?: string; // ✅ Cho phép undefined
+  user_collected_count?: number; // ✅ Số lượng user đã thu thập
+  quantity?: number; // ✅ Số lượng còn lại trong kho
 };
 
 export default function Point() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user, isAuthenticated, loginWithZalo } = useAuth();
   
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
@@ -38,6 +41,13 @@ export default function Point() {
     header3: ""
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
+
+  // Auto login nếu chưa đăng nhập
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      loginWithZalo();
+    }
+  }, [isAuthenticated, user, loginWithZalo]);
 
   useEffect(() => {
     if (!user?.zaloId) return;
@@ -76,9 +86,12 @@ export default function Point() {
   
   useEffect(() => {
     const fetchVouchers = async () => {
+      if (!user?.zaloId) return;
+      
       setLoading(true);
       try {
-        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=wheel");
+        // Sử dụng API mới với zaloId
+        const res = await fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/category/wheel/user/${user.zaloId}`);
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
 
@@ -89,7 +102,7 @@ export default function Point() {
           vouchers = data.data || data.vouchers || [];
         }
 
-        // ✅ Sửa mapping với fallback values
+        // ✅ Sửa mapping với fallback values và user_collected_count
         vouchers = vouchers.map(v => ({
           ...v,
           VoucherID: v.VoucherID || v.voucherid,
@@ -97,6 +110,7 @@ export default function Point() {
           description: v.Description || v.description || "Voucher không tên",
           probability: v.Probability || v.probability || 0,
           image: v.Image || v.image,
+          user_collected_count: v.user_collected_count || 0, // Số lượng user đã thu thập
         }));
 
         
@@ -111,7 +125,7 @@ export default function Point() {
       }
     };
     fetchVouchers();
-  }, []);
+  }, [user?.zaloId]);
   // 👇 THÊM ĐOẠN NÀY - useEffect cho phím Enter
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -133,7 +147,7 @@ export default function Point() {
   
 
   const handleSpinClick = async () => {
-    if (isSpinning || wheelVouchers.length === 0) return;
+    if (isSpinning || wheelVouchers.length === 0 || !user?.zaloId) return;
 
     setIsSpinning(true);
 
@@ -660,10 +674,18 @@ export default function Point() {
                   <div className="font-bold text-sm" style={{ fontFamily: 'serif' }}>
                     {voucher.description || "Voucher"}
                   </div>
-                  {/* Thêm các trường thông tin khác nếu có */}
-                  {/* {voucher.Code && (
-                    <div className="text-xs mt-1">Mã: <span className="font-semibold">{voucher.Code}</span></div>
-                  )} */}
+                  {/* Hiển thị số lượng user đã thu thập */}
+                  {voucher.user_collected_count !== undefined && (
+                    <div className="text-xs mt-1">
+                      Bạn đã có: <span className="font-semibold text-blue-600">{voucher.user_collected_count}</span>
+                    </div>
+                  )}
+                  {/* Vẫn hiển thị số lượng trong kho nếu có */}
+                  {voucher.quantity !== undefined && (
+                    <div className="text-xs mt-1">
+                      Còn lại: <span className="font-semibold text-green-600">{voucher.quantity}</span>
+                    </div>
+                  )}
                   {voucher.Discount && (
                     <div className="text-xs mt-1">Giảm giá: <span className="font-semibold">{voucher.Discount}</span></div>
                   )}

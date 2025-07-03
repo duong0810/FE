@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "@/context/AuthContext";
 declare global {
   interface Window {
     zaloId?: string;
@@ -22,18 +23,23 @@ type Voucher = {
   VoucherID?: string;
   discount?: number;
   expirydate?: string;
+  user_collected_count?: number; // ✅ Số lượng user đã thu thập
 };
 
 export default function VoucherWarehouse() {
+  const { user, isAuthenticated, loginWithZalo } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const now = new Date();
 
-  // Lấy zaloId thực tế từ localStorage hoặc window (tùy hệ thống của bạn)
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const zaloId = user.zaloId || window.zaloId || "1234567890";
+  // Auto login nếu chưa đăng nhập
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      loginWithZalo();
+    }
+  }, [isAuthenticated, user, loginWithZalo]);
 
   // Hàm parse ngày, hỗ trợ cả ISO (yyyy-mm-dd) và dd/mm/yyyy
   const parseVNDate = (str?: string) => {
@@ -89,9 +95,12 @@ export default function VoucherWarehouse() {
 
   // Fetch vouchers từ server
   const fetchVouchers = async () => {
+    if (!user?.zaloId) return;
+    
     try {
       setLoading(true);
-      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=ticket");
+      // Sử dụng API mới với zaloId
+      const response = await fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/category/ticket/user/${user.zaloId}`);
       if (!response.ok) {
         throw new Error(
           `Lỗi khi lấy dữ liệu từ server: ${response.status} ${response.statusText}`
@@ -119,6 +128,7 @@ export default function VoucherWarehouse() {
           ExpiryDate: v.ExpiryDate ?? v.expirydate,
           ImageUrl: v.ImageUrl ?? v.imageUrl ?? v.Image ?? v.image,
           IsExpired: isExpired(v.ExpiryDate ?? v.expirydate),
+          user_collected_count: v.user_collected_count || 0, // Số lượng user đã thu thập
         }))
         .filter(v => !v.IsExpired)
         .filter(v => v.Quantity === undefined || v.Quantity > 0);
@@ -132,15 +142,20 @@ export default function VoucherWarehouse() {
   };
 
   useEffect(() => {
-    fetchVouchers();
-    const intervalId = setInterval(() => {
+    if (user?.zaloId) {
       fetchVouchers();
-    }, 30000);
-    return () => clearInterval(intervalId);
-  }, []);
+      const intervalId = setInterval(() => {
+        fetchVouchers();
+      }, 30000);
+      return () => clearInterval(intervalId);
+    }
+    return () => {}; // Return cleanup function for all paths
+  }, [user?.zaloId]);
 
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
   const handleSelectVoucher = async (voucherId: number) => {
+    if (!user?.zaloId) return;
+    
     const selected = vouchers.find((v) => v.Id === voucherId);
     if (!selected) return;
 
@@ -155,7 +170,7 @@ export default function VoucherWarehouse() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           voucherId: selected.VoucherID ?? selected.Id,
-          zaloId: zaloId // <-- chỉ gửi zaloId
+          zaloId: user.zaloId // <-- sử dụng user.zaloId
         }),
       });
 

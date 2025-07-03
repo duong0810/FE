@@ -11,6 +11,7 @@ import GiftPage from "./pages/voucher/gift";
 import VoucherWarehouse from "./pages/voucher/VoucherWarehouse";
 import Point from "./pages/voucher/point";
 import Core from "./pages/voucher/core";
+import UserStatsPage from "./pages/voucher/user-stats";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
       { path: "/voucher-warehouse", element: <VoucherWarehouse />, handle: { title: "kho voucher" } },
       { path: "/point", element: <Point />, handle: { title: "Vòng quay may mắn" } },
       { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },
+      { path: "/user-stats", element: <UserStatsPage />, handle: { title: "Thống kê voucher" } },
 
     ],
   },
