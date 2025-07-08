@@ -6,44 +6,33 @@ export const handleZaloLogin = async () => {
   try {
     console.log('Bắt đầu đăng nhập Zalo...');
     
-    // 1. Xin quyền truy cập (bao gồm cả số điện thoại)
-    const authResult = await authorize({ 
-      scopes: ['scope.userInfo', 'scope.userPhonenumber'] 
-    });
-    console.log('Authorize result:', authResult);
-    
-    // 2. Lấy thông tin user từ Zalo
+    // 1. Xin quyền thông tin cơ bản
+    await authorize({ scopes: ['scope.userInfo'] });
     const userInfo = await getUserInfo({
       autoRequestPermission: true
     });
     console.log('User info from Zalo:', userInfo);
     
-    // 3. Lấy số điện thoại - xử lý error gracefully
+    // 2. Xin quyền số điện thoại
     let phoneToken: string | null = null;
     try {
+      await authorize({ scopes: ['scope.userPhonenumber'] });
       const phoneResult = await getPhoneNumber();
-      console.log('Phone result from Zalo:', phoneResult);
       phoneToken = phoneResult?.token || null;
+      console.log('Phone token:', phoneToken);
     } catch (phoneError) {
-      console.error('Lỗi khi lấy số điện thoại:', phoneError);
-      // Vẫn tiếp tục đăng nhập mà không có phone
+      console.log('User từ chối chia sẻ phone hoặc chưa có quyền:', phoneError);
     }
     
-    // 4. Validate userInfo
+    // 3. Validate userInfo
     if (!userInfo || !userInfo.userInfo) {
       throw new Error('Không thể lấy thông tin user từ Zalo');
     }
     
-    const zaloUser = userInfo.userInfo;
-    
-    // 5. Gửi lên Backend
+    // 4. Gửi cả userInfo và phoneToken lên Backend
     const requestData = {
-      userInfo: {
-        id: zaloUser.id,
-        name: zaloUser.name || 'Người dùng Zalo',
-        avatar: zaloUser.avatar || ''
-      },
-      phoneToken: phoneToken
+      userInfo,
+      phoneToken // Backend sẽ decode thành số điện thoại thực
     };
     
     console.log('Sending to backend:', requestData);
@@ -58,11 +47,11 @@ export const handleZaloLogin = async () => {
     console.log('Backend response:', result);
     
     if (result.success) {
-      // Lưu token để dùng cho các API khác
+      console.log('Đăng nhập thành công:', result.user);
+      // result.user.phone sẽ có số điện thoại thực nếu user cho phép
       const token = result.token;
       const user = result.user;
       
-      console.log('Đăng nhập thành công:', user);
       return { token, user };
     } else {
       throw new Error(result.message || 'Đăng nhập thất bại');
@@ -76,7 +65,6 @@ export const handleZaloLogin = async () => {
       stack: error instanceof Error ? error.stack : undefined
     });
     
-    // Hiển thị lỗi chi tiết hơn
     alert('Đăng nhập thất bại: ' + errorMessage);
     return null;
   }
