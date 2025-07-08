@@ -139,6 +139,24 @@ export default function VoucherWarehouse() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Hàm claim voucher mới
+  const claimVoucher = async (voucherId: number) => {
+    const token = localStorage.getItem('zalo_token');
+    if (!token) {
+      alert('Vui lòng đăng nhập trước');
+      return { success: false, error: 'Chưa đăng nhập' };
+    }
+    const response = await fetch('https://zalo.kosmosdevelopment.com/api/vouchers/claim', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ voucherId })
+    });
+    return response.json();
+  };
+
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
   const handleSelectVoucher = async (voucherId: number) => {
     const selected = vouchers.find((v) => v.Id === voucherId);
@@ -150,29 +168,21 @@ export default function VoucherWarehouse() {
     }
 
     try {
-      const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          voucherId: selected.VoucherID ?? selected.Id,
-          zaloId: zaloId // <-- chỉ gửi zaloId
-        }),
-      });
-
-      if (res.ok) {
+      const res = await claimVoucher(Number(selected.VoucherID ?? selected.Id));
+      if (res.success) {
         toast.success("Bạn đã thu thập voucher thành công!");
         await new Promise(r => setTimeout(r, 500));
         fetchVouchers();
         setTimeout(() => {
           navigate("/gift");
         }, 1000);
-      } else if (res.status === 409) {
-        const data = await res.json();
-        toast.error(data.error || "Bạn đã thu thập voucher này hoặc voucher đã hết lượt!");
-        console.log('409 conflict:', data);
+      } else if (res.error) {
+        toast.error(res.error || "Thu thập voucher thất bại!");
+        if (res.status === 409) {
+          console.log('409 conflict:', res);
+        }
       } else {
-        const data = await res.json();
-        toast.error(data.error || "Thu thập voucher thất bại!");
+        toast.error("Thu thập voucher thất bại!");
       }
     } catch (err) {
       toast.error("Có lỗi khi thu thập voucher, vui lòng thử lại!");

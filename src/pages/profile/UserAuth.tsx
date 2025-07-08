@@ -16,8 +16,11 @@ function UserAuth() {
           />
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{user.fullname}</h3>
-            <p className="text-gray-600">{user.phone}</p>
-            <p className="text-sm text-gray-500">Vai trò: {user.role}</p>
+            <p className="text-gray-600">
+              {user.phone ? `+84 ${user.phone.replace(/^84/, '')}` : 'Chưa có số điện thoại'}
+            </p>
+            {/* Ẩn vai trò user */}
+            {/* <p className="text-sm text-gray-500">Vai trò: {user.role}</p> */}
           </div>
           <button 
             onClick={logout}
