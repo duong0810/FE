@@ -122,6 +122,7 @@ export default function VoucherWarehouse() {
         }))
         .filter(v => !v.IsExpired)
         .filter(v => v.Quantity === undefined || v.Quantity > 0);
+      console.log('[FETCH] voucherArray:', voucherArray);
       setVouchers(voucherArray);
       setError("");
     } catch (err) {
@@ -140,7 +141,7 @@ export default function VoucherWarehouse() {
   }, []);
 
   // Hàm claim voucher mới
-  const claimVoucher = async (voucherId: number) => {
+  const claimVoucher = async (voucherId: string) => {
     const token = localStorage.getItem('zalo_token');
     if (!token) {
       alert('Vui lòng đăng nhập trước');
@@ -159,7 +160,10 @@ export default function VoucherWarehouse() {
 
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
   const handleSelectVoucher = async (voucherId: number) => {
-    const selected = vouchers.find((v) => v.Id === voucherId);
+    // So sánh cả string và number (voucherId FE truyền vào là number, Id/VoucherID là string)
+    const voucherIdStr = String(voucherId);
+    const selected = vouchers.find((v) => String(v.Id) === voucherIdStr || String(v.VoucherID) === voucherIdStr);
+    console.log('[CLAIM] Chọn voucher:', selected, 'voucherId param:', voucherId);
     if (!selected) {
       toast.error("Không tìm thấy voucher!");
       console.error("[CLAIM] Không tìm thấy voucher với Id:", voucherId);
@@ -171,9 +175,9 @@ export default function VoucherWarehouse() {
       return;
     }
 
-    // Đảm bảo voucherId là số hợp lệ
-    const idToClaim = Number(selected.VoucherID ?? selected.Id);
-    if (!idToClaim || isNaN(idToClaim)) {
+    // Đảm bảo voucherId là string hợp lệ
+    const idToClaim = (selected.VoucherID || selected.Id)?.toString();
+    if (!idToClaim) {
       toast.error("VoucherId không hợp lệ!");
       console.error("[CLAIM] VoucherId không hợp lệ:", idToClaim, selected);
       return;
