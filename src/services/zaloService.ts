@@ -18,11 +18,12 @@ export const handleZaloLogin = async () => {
     });
     console.log('User info from Zalo:', userInfo);
     
-    // 3. Lấy số điện thoại
-    let phoneResult: any = null;
+    // 3. Lấy số điện thoại - xử lý error gracefully
+    let phoneToken: string | null = null;
     try {
-      phoneResult = await getPhoneNumber();
+      const phoneResult = await getPhoneNumber();
       console.log('Phone result from Zalo:', phoneResult);
+      phoneToken = phoneResult?.token || null;
     } catch (phoneError) {
       console.error('Lỗi khi lấy số điện thoại:', phoneError);
       // Vẫn tiếp tục đăng nhập mà không có phone
@@ -34,7 +35,6 @@ export const handleZaloLogin = async () => {
     }
     
     const zaloUser = userInfo.userInfo;
-    const phoneNumber = phoneResult?.token || '';
     
     // 5. Gửi lên Backend
     const requestData = {
@@ -43,7 +43,7 @@ export const handleZaloLogin = async () => {
         name: zaloUser.name || 'Người dùng Zalo',
         avatar: zaloUser.avatar || ''
       },
-      phoneToken: phoneNumber
+      phoneToken: phoneToken
     };
     
     console.log('Sending to backend:', requestData);
