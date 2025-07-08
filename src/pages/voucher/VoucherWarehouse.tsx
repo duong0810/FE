@@ -160,15 +160,28 @@ export default function VoucherWarehouse() {
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
   const handleSelectVoucher = async (voucherId: number) => {
     const selected = vouchers.find((v) => v.Id === voucherId);
-    if (!selected) return;
+    if (!selected) {
+      toast.error("Không tìm thấy voucher!");
+      console.error("[CLAIM] Không tìm thấy voucher với Id:", voucherId);
+      return;
+    }
 
     if (selected.Quantity !== undefined && selected.Quantity <= 0) {
       toast.error("Voucher đã hết lượt thu thập!");
       return;
     }
 
+    // Đảm bảo voucherId là số hợp lệ
+    const idToClaim = Number(selected.VoucherID ?? selected.Id);
+    if (!idToClaim || isNaN(idToClaim)) {
+      toast.error("VoucherId không hợp lệ!");
+      console.error("[CLAIM] VoucherId không hợp lệ:", idToClaim, selected);
+      return;
+    }
+
     try {
-      const res = await claimVoucher(Number(selected.VoucherID ?? selected.Id));
+      console.log("[CLAIM] Gửi voucherId:", idToClaim, selected);
+      const res = await claimVoucher(idToClaim);
       if (res.success) {
         toast.success("Bạn đã thu thập voucher thành công!");
         await new Promise(r => setTimeout(r, 500));
