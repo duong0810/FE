@@ -42,7 +42,8 @@ export const handleZaloLogin = async () => {
     let accessToken: string | null = null;
     try {
       const tokenResponse = await getAccessToken();
-      accessToken = tokenResponse; // tokenResponse chính là accessToken string
+      // getAccessToken() có thể trả về string hoặc object
+      accessToken = (tokenResponse as any).accessToken || tokenResponse as string;
       console.log('Access token:', accessToken);
     } catch (tokenError) {
       console.log('Cannot get access token:', tokenError);
