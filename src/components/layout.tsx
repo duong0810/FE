@@ -1,14 +1,12 @@
 
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
 
   // Xác định trang hiện tại để đánh dấu menu active
   const getCurrentPath = () => {
@@ -107,7 +105,7 @@ export default function Layout() {
           </button>
 
           <button
-            onClick={() => isAuthenticated ? navigate("/profile") : navigate("/login")}
+            onClick={() => navigate("/profile")}
             className={`flex flex-col items-center ${
               currentPath === "profile" ? "text-blue-500" : "text-gray-500"
             }`}
