@@ -6,9 +6,6 @@ import { RouterProvider } from "react-router-dom";
 // Router
 import router from "@/router";
 
-// Auth Provider
-import { AuthProvider } from "@/context/AuthContext";
-
 // ZaUI stylesheet
 import "zmp-ui/zaui.css";
 // Tailwind stylesheet
@@ -23,10 +20,10 @@ if (!window.APP_CONFIG) {
   window.APP_CONFIG = appConfig;
 }
 
-// Mount the app với AuthProvider wrap RouterProvider
+// Mount the app - tạm thời bỏ AuthProvider
 const root = createRoot(document.getElementById("app")!);
 root.render(
-  createElement(AuthProvider, { children: createElement(RouterProvider, { router }) })
+  createElement(RouterProvider, { router })
 );
 
 console.log("App version: 20250628");
