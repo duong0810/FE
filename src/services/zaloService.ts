@@ -45,10 +45,10 @@ export const handleZaloLogin = async () => {
     console.log('Full userInfo structure:', JSON.stringify(userInfo, null, 2));
     console.log('userInfo.userInfo:', JSON.stringify(userInfo.userInfo, null, 2));
     
-    // 6. Gửi TẤT CẢ 3 FIELDS lên Backend
+    // 6. Gửi TẤT CẢ 3 FIELDS lên Backend với format đúng
     const requestData = {
-      userInfo,
-      accessToken,  // ← THÊM FIELD NÀY
+      userInfo: userInfo.userInfo,  // ✅ Lấy nested userInfo ra
+      accessToken,
       phoneToken 
     };
     
