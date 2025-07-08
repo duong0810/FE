@@ -4,15 +4,20 @@ import { API_BASE } from '@/config/zalo';
 // Function decode phone token trên Frontend (IP Việt Nam)
 const decodePhoneToken = async (phoneToken: string, accessToken: string) => {
   try {
-    const response = await fetch(
-      `https://graph.zalo.me/v2.0/me/info?access_token=${accessToken}&code=${phoneToken}&fields=name,picture`
-    );
+    const url = `https://graph.zalo.me/v2.0/me/info?access_token=${accessToken}&code=${phoneToken}&fields=name,picture`;
+    console.log('Calling Zalo API:', url);
+    
+    const response = await fetch(url);
+    console.log('API response status:', response.status);
     
     const data = await response.json();
     console.log('Frontend phone decode response:', data);
     
     if (data.error === 0 && data.data && data.data.number) {
+      console.log('✅ Successfully decoded phone:', data.data.number);
       return data.data.number;
+    } else {
+      console.log('❌ Phone decode failed. Error:', data.error, 'Message:', data.message);
     }
     
     return null;
@@ -52,13 +57,19 @@ export const handleZaloLogin = async () => {
     // 4. Decode phone trên Frontend (IP Việt Nam)
     let phoneNumber: string | null = null;
     try {
+      console.log('=== PHONE DECODE PROCESS ===');
       const phoneResult = await getPhoneNumber();
       const phoneToken = phoneResult?.token || null;
+      console.log('Phone result:', phoneResult);
       console.log('Phone token:', phoneToken);
+      console.log('Access token for phone:', accessToken);
       
       if (phoneToken && accessToken) {
+        console.log('Calling decodePhoneToken with:', { phoneToken, accessToken });
         phoneNumber = await decodePhoneToken(phoneToken, accessToken);
         console.log('Decoded phone number:', phoneNumber);
+      } else {
+        console.log('Missing phoneToken or accessToken:', { phoneToken: !!phoneToken, accessToken: !!accessToken });
       }
     } catch (phoneError) {
       console.log('Phone decode failed:', phoneError);
