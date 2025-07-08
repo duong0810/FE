@@ -14,11 +14,16 @@ export default () => {
     },
     server: {
       proxy: {
-        '/api': 'http://localhost:5000',
+        '/api': {
+          target: 'https://zalo.kosmosdevelopment.com',
+          changeOrigin: true,
+          secure: true
+        },
       },
     },
+    // ...existing code...
     build: {
-      outDir: "dist",
+      outDir: "www",
       assetsDir: "assets",
       rollupOptions: {
         output: {
