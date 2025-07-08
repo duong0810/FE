@@ -1,4 +1,4 @@
-import { getUserInfo, authorize, getPhoneNumber } from 'zmp-sdk/apis';
+import { getUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
 import { API_BASE } from '@/config/zalo';
 
 // Flow đăng nhập chính
@@ -6,22 +6,35 @@ export const handleZaloLogin = async () => {
   try {
     console.log('Bắt đầu đăng nhập Zalo...');
     
-    // 1. Xin quyền thông tin cơ bản
-    await authorize({ scopes: ['scope.userInfo'] });
+    // 1. Xin quyền
+    await authorize({ 
+      scopes: ['scope.userInfo', 'scope.userPhonenumber'] 
+    });
+    
+    // 2. Lấy thông tin user
     const userInfo = await getUserInfo({
       autoRequestPermission: true
     });
     console.log('User info from Zalo:', userInfo);
     
-    // 2. Xin quyền số điện thoại
+    // 3. Lấy access token (THÊM DÒNG NÀY)
+    let accessToken: string | null = null;
+    try {
+      const tokenResponse = await getAccessToken();
+      accessToken = tokenResponse; // tokenResponse chính là accessToken string
+      console.log('Access token:', accessToken);
+    } catch (tokenError) {
+      console.log('Cannot get access token:', tokenError);
+    }
+    
+    // 4. Lấy phone token
     let phoneToken: string | null = null;
     try {
-      await authorize({ scopes: ['scope.userPhonenumber'] });
       const phoneResult = await getPhoneNumber();
       phoneToken = phoneResult?.token || null;
       console.log('Phone token:', phoneToken);
     } catch (phoneError) {
-      console.log('User từ chối chia sẻ phone hoặc chưa có quyền:', phoneError);
+      console.log('Cannot get phone token:', phoneError);
     }
     
     // 3. Validate userInfo
@@ -29,10 +42,14 @@ export const handleZaloLogin = async () => {
       throw new Error('Không thể lấy thông tin user từ Zalo');
     }
     
-    // 4. Gửi cả userInfo và phoneToken lên Backend
+    console.log('Full userInfo structure:', JSON.stringify(userInfo, null, 2));
+    console.log('userInfo.userInfo:', JSON.stringify(userInfo.userInfo, null, 2));
+    
+    // 6. Gửi TẤT CẢ 3 FIELDS lên Backend
     const requestData = {
       userInfo,
-      phoneToken // Backend sẽ decode thành số điện thoại thực
+      accessToken,  // ← THÊM FIELD NÀY
+      phoneToken 
     };
     
     console.log('Sending to backend:', requestData);
