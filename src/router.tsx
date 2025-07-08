@@ -6,12 +6,12 @@ import ProductDetailPage from "@/pages/catalog/product-detail";
 import HomePage from "@/pages/home";
 import ProfilePage from "@/pages/profile";
 import SearchPage from "@/pages/search";
-import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import GiftPage from "./pages/voucher/gift";
 import VoucherWarehouse from "./pages/voucher/VoucherWarehouse";
 import Point from "./pages/voucher/point";
 import Core from "./pages/voucher/core";
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/",
     element: <Layout />,
