@@ -19,8 +19,14 @@ export const handleZaloLogin = async () => {
     console.log('User info from Zalo:', userInfo);
     
     // 3. Lấy số điện thoại
-    const phoneResult = await getPhoneNumber();
-    console.log('Phone result from Zalo:', phoneResult);
+    let phoneResult: any = null;
+    try {
+      phoneResult = await getPhoneNumber();
+      console.log('Phone result from Zalo:', phoneResult);
+    } catch (phoneError) {
+      console.error('Lỗi khi lấy số điện thoại:', phoneError);
+      // Vẫn tiếp tục đăng nhập mà không có phone
+    }
     
     // 4. Validate userInfo
     if (!userInfo || !userInfo.userInfo) {
