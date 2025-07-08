@@ -21,15 +21,16 @@ export default () => {
         },
       },
     },
-    // ...existing code...
     build: {
       outDir: "www",
       assetsDir: "assets",
+      target: "es2015", // Thêm dòng này
       rollupOptions: {
         output: {
           entryFileNames: 'assets/[name].[hash].js',
           chunkFileNames: 'assets/[name].[hash].js',
           assetFileNames: 'assets/[name].[hash].[ext]',
+          format: 'iife', // Thêm dòng này
         },
       },
     },
