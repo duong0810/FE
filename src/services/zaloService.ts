@@ -1,6 +1,27 @@
 import { getUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
 import { API_BASE } from '@/config/zalo';
 
+// Function decode phone token trên Frontend (IP Việt Nam)
+const decodePhoneToken = async (phoneToken: string, accessToken: string) => {
+  try {
+    const response = await fetch(
+      `https://graph.zalo.me/v2.0/me/info?access_token=${accessToken}&code=${phoneToken}&fields=name,picture`
+    );
+    
+    const data = await response.json();
+    console.log('Frontend phone decode response:', data);
+    
+    if (data.error === 0 && data.data && data.data.number) {
+      return data.data.number;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Frontend phone decode error:', error);
+    return null;
+  }
+};
+
 // Flow đăng nhập chính
 export const handleZaloLogin = async () => {
   try {
@@ -17,7 +38,7 @@ export const handleZaloLogin = async () => {
     });
     console.log('User info from Zalo:', userInfo);
     
-    // 3. Lấy access token (THÊM DÒNG NÀY)
+    // 3. Lấy access token
     let accessToken: string | null = null;
     try {
       const tokenResponse = await getAccessToken();
@@ -27,17 +48,22 @@ export const handleZaloLogin = async () => {
       console.log('Cannot get access token:', tokenError);
     }
     
-    // 4. Lấy phone token
-    let phoneToken: string | null = null;
+    // 4. Decode phone trên Frontend (IP Việt Nam)
+    let phoneNumber: string | null = null;
     try {
       const phoneResult = await getPhoneNumber();
-      phoneToken = phoneResult?.token || null;
+      const phoneToken = phoneResult?.token || null;
       console.log('Phone token:', phoneToken);
+      
+      if (phoneToken && accessToken) {
+        phoneNumber = await decodePhoneToken(phoneToken, accessToken);
+        console.log('Decoded phone number:', phoneNumber);
+      }
     } catch (phoneError) {
-      console.log('Cannot get phone token:', phoneError);
+      console.log('Phone decode failed:', phoneError);
     }
     
-    // 3. Validate userInfo
+    // 5. Validate userInfo
     if (!userInfo || !userInfo.userInfo) {
       throw new Error('Không thể lấy thông tin user từ Zalo');
     }
@@ -45,11 +71,11 @@ export const handleZaloLogin = async () => {
     console.log('Full userInfo structure:', JSON.stringify(userInfo, null, 2));
     console.log('userInfo.userInfo:', JSON.stringify(userInfo.userInfo, null, 2));
     
-    // 6. Gửi TẤT CẢ 3 FIELDS lên Backend với format đúng
+    // 6. Gửi phoneNumber lên Backend (KHÔNG phải phoneToken)
     const requestData = {
       userInfo: userInfo.userInfo,  // ✅ Lấy nested userInfo ra
       accessToken,
-      phoneToken 
+      phoneNumber // ← GỬI PHONE NUMBER THAY VÌ phoneToken
     };
     
     console.log('Sending to backend:', requestData);
