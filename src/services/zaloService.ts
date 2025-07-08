@@ -3,9 +3,12 @@ import { API_BASE } from '@/config/zalo';
 
 // Function decode phone token trên Frontend (IP Việt Nam)
 const decodePhoneToken = async (phoneToken: string, accessToken: string) => {
+  const SECRET_KEY = '7BWPKw3F6cKn5YMABoLD'; // Secret key từ Zalo Developer Console
+  
   try {
-    const url = `https://graph.zalo.me/v2.0/me/info?access_token=${accessToken}&code=${phoneToken}&fields=name,picture`;
-    console.log('Calling Zalo API:', url);
+    // Thử endpoint chính với secret_key
+    const url = `https://graph.zalo.me/v2.0/me/info?access_token=${accessToken}&code=${phoneToken}&secret_key=${SECRET_KEY}&fields=id,name,picture`;
+    console.log('Calling Zalo API with secret_key:', url);
     
     const response = await fetch(url);
     console.log('API response status:', response.status);
