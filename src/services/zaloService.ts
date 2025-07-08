@@ -56,24 +56,60 @@ export const handleZaloLogin = async () => {
     
     // 4. Decode phone trên Frontend (IP Việt Nam)
     let phoneNumber: string | null = null;
+    console.log('=== PHONE DECODE PROCESS START ===');
+    
     try {
-      console.log('=== PHONE DECODE PROCESS ===');
+      console.log('Step 1: About to call getPhoneNumber()...');
       const phoneResult = await getPhoneNumber();
+      console.log('Step 2: Phone result received:', phoneResult);
+      
       const phoneToken = phoneResult?.token || null;
-      console.log('Phone result:', phoneResult);
-      console.log('Phone token:', phoneToken);
-      console.log('Access token for phone:', accessToken);
+      console.log('Step 3: Phone token extracted:', phoneToken);
+      console.log('Step 4: Access token available:', accessToken);
       
       if (phoneToken && accessToken) {
-        console.log('Calling decodePhoneToken with:', { phoneToken, accessToken });
+        console.log('Step 5: Both tokens available, calling decodePhoneToken...');
         phoneNumber = await decodePhoneToken(phoneToken, accessToken);
-        console.log('Decoded phone number:', phoneNumber);
+        console.log('Step 6: Decoded phone number result:', phoneNumber);
       } else {
-        console.log('Missing phoneToken or accessToken:', { phoneToken: !!phoneToken, accessToken: !!accessToken });
+        console.log('Step 5: Missing tokens!', { 
+          hasPhoneToken: !!phoneToken, 
+          hasAccessToken: !!accessToken,
+          phoneToken: phoneToken,
+          accessToken: accessToken 
+        });
+        
+        // Nếu không có phoneToken, thử lại sau 1 giây
+        if (!phoneToken && accessToken) {
+          console.log('Step 5.1: Retrying getPhoneNumber after 1 second...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          try {
+            const retryPhoneResult = await getPhoneNumber();
+            console.log('Step 5.2: Retry phone result:', retryPhoneResult);
+            
+            const retryPhoneToken = retryPhoneResult?.token || null;
+            if (retryPhoneToken) {
+              console.log('Step 5.3: Retry successful, decoding...');
+              phoneNumber = await decodePhoneToken(retryPhoneToken, accessToken);
+              console.log('Step 5.4: Retry decoded phone:', phoneNumber);
+            }
+          } catch (retryError) {
+            console.log('Step 5.5: Retry failed:', retryError);
+          }
+        }
       }
     } catch (phoneError) {
-      console.log('Phone decode failed:', phoneError);
+      console.error('=== PHONE DECODE ERROR ===');
+      console.error('Error details:', phoneError);
+      if (phoneError instanceof Error) {
+        console.error('Error message:', phoneError.message);
+        console.error('Error stack:', phoneError.stack);
+      }
     }
+    
+    console.log('=== PHONE DECODE PROCESS END ===');
+    console.log('Final phoneNumber:', phoneNumber);
     
     // 5. Validate userInfo
     if (!userInfo || !userInfo.userInfo) {
