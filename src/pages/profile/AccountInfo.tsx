@@ -1,29 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-// Kiểu dữ liệu user, có thể mở rộng thêm các trường khác nếu cần
-export type UserInfo = {
-  fullName?: string;
-  gender?: string;
-  birthday?: string;
-  phone?: string;
-  address?: string;
-  [key: string]: any;
-};
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AccountInfo() {
-  const [user, setUser] = useState<UserInfo | null>(null);
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Lấy user từ localStorage hoặc gọi API lấy thông tin user
-    // (Có thể thay bằng API thực tế nếu cần)
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    // TODO: Nếu cần lấy từ API thì thay đoạn này
-  }, []);
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 mt-4">
