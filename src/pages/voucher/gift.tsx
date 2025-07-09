@@ -76,7 +76,7 @@ export default function VoucherPage() {
           userId = user?.id || user?.userId || user?.zaloId || null;
         } catch {}
         // Nếu không có token hoặc userId thì báo lỗi
-        if (!token || !userId) {
+        if (!token) {
           setDebugInfo('Bạn chưa đăng nhập hoặc thiếu thông tin user.');
           setSelectedVouchers([]);
           return;
