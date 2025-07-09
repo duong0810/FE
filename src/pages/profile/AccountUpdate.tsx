@@ -5,10 +5,23 @@ export default function AccountUpdate() {
   const navigate = useNavigate();
   const userData = localStorage.getItem("user");
   const user = userData ? JSON.parse(userData) : {};
+  // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
+  function toDDMMYYYY(dateStr: string) {
+    if (!dateStr) return "";
+    // Nếu là ISO hoặc yyyy-mm-dd thì convert sang dd/mm/yyyy
+    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+    const ymd = dateStr.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
+    // Nếu đã là dd/mm/yyyy thì giữ nguyên
+    const ddmmyyyy = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (ddmmyyyy) return dateStr;
+    return dateStr;
+  }
   const [form, setForm] = useState({
     fullname: user.fullName || "",
     gender: user.gender || "",
-    birthday: user.birthday || "",
+    birthday: toDDMMYYYY(user.birthday || ""),
     phone: user.phone || "",
     address: user.address || "",
   });
@@ -40,13 +53,21 @@ export default function AccountUpdate() {
     setSuccess(false);
     try {
       const token = localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
+      // Chuyển birthday về đúng định dạng dd/mm/yyyy trước khi gửi
+      let birthday = form.birthday;
+      // Nếu là ISO hoặc yyyy-mm-dd thì convert sang dd/mm/yyyy
+      const isoMatch = birthday.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) birthday = `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+      const ymd = birthday.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+      if (ymd) birthday = `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
+      const body = { ...form, birthday };
       const res = await fetch("https://zalo.kosmosdevelopment.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
