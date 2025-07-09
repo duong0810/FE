@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { useAuth } from "@/context/AuthContext";
 
 export default function AccountUpdate() {
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, refreshUser } = useAuth();
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
     if (!dateStr) return "";
@@ -71,7 +72,8 @@ export default function AccountUpdate() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Sau khi cập nhật thành công, chuyển về trang tài khoản và reload lại user context
+      // Gọi refreshUser để đồng bộ lại context ngay sau khi cập nhật
+      await refreshUser?.();
       setTimeout(() => navigate("/account", { replace: true }), 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
