@@ -101,16 +101,15 @@ export default function VoucherPage() {
         }
         const now = new Date().getTime();
         const validVouchers = list
-          .filter(
-            (v: Voucher) =>
-              !v.ExpiryDate  ||
-              (parseVNDate(v.ExpiryDate)?.getTime() ?? 0) >= now
-          )
-          .map((v: Voucher) => ({
-            ...v,
-            isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
-            Id: v.Id?.toString() || v.Id || v.code || v.Code || v.VoucherCode || "",
-          }));
+        .filter((v: Voucher) => {
+          const dateStr = v.ExpiryDate || v.expirydate || v.expiryDate;
+          return !dateStr || (parseVNDate(dateStr)?.getTime() ?? 0) >= now;
+        })
+        .map((v: Voucher) => ({
+          ...v,
+          isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
+          Id: v.Id?.toString() || v.Id || v.code || v.Code || v.VoucherCode || "",
+        }));
         setSelectedVouchers(validVouchers);
         setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
       } catch (err) {
