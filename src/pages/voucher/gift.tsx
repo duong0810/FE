@@ -100,16 +100,21 @@ export default function VoucherPage() {
           list = Array.isArray(list) ? list : [];
         }
         const now = new Date().getTime();
-        const validVouchers = list
-        .filter((v: Voucher) => {
-          const dateStr = v.ExpiryDate || v.expirydate || v.expiryDate;
-          return !dateStr || (parseVNDate(dateStr)?.getTime() ?? 0) >= now;
-        })
-        .map((v: Voucher) => ({
-          ...v,
-          isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
-          Id: v.Id?.toString() || v.Id || v.code || v.Code || v.VoucherCode || "",
-        }));
+        const validVouchers = (list as any[])
+          .map((v: any) => ({
+            ...v,
+            Id: v.voucherid || v.Id || v.code || v.Code || v.VoucherCode || "",
+            Code: v.code || v.Code || v.VoucherCode || "",
+            Discount: v.discount ? parseFloat(v.discount) : v.Discount,
+            ExpiryDate: v.expirydate || v.ExpiryDate,
+            Description: v.description || v.Description,
+            image: v.image || v.imageurl,
+            isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
+          }))
+          .filter((v: Voucher) => {
+            const dateStr = v.ExpiryDate || v.expirydate || v.expiryDate;
+            return !dateStr || (parseVNDate(dateStr)?.getTime() ?? 0) >= now;
+          });
         setSelectedVouchers(validVouchers);
         setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
       } catch (err) {
@@ -119,10 +124,18 @@ export default function VoucherPage() {
     };
 
     fetchVouchers();
-    // Nếu muốn tự động reload khi quay lại tab:
+    // Reload khi quay lại tab hoặc sau khi claim voucher thành công
     const handleFocus = () => fetchVouchers();
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+
+    // Listen custom event khi claim voucher thành công ở nơi khác
+    const handleVoucherClaimed = () => fetchVouchers();
+    window.addEventListener("voucher-claimed", handleVoucherClaimed);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("voucher-claimed", handleVoucherClaimed);
+    };
   }, [token]);
 
   // Kiểm tra mã hợp lệ
