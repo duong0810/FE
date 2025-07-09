@@ -22,6 +22,7 @@ type Voucher = {
 export default function Point() {
   // Đồng bộ lấy zaloId giống VoucherWarehouse
   const rawUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const token = rawUser?.token || rawUser?.accessToken || "";
   const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
   const user = { ...rawUser, zaloId };
   
@@ -42,13 +43,18 @@ export default function Point() {
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
 
+  // Lấy danh sách voucher của user (nếu cần xác thực, gửi Authorization header)
   useEffect(() => {
-    if (!user?.zaloId) return;
-    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${user.zaloId}`)
+    if (!token) return;
+    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(res => res.json())
       .then(data => setUserVouchers(Array.isArray(data) ? data : data.data || []))
       .catch(() => setUserVouchers([]));
-  }, [user?.zaloId, showModal]);
+  }, [token, showModal]);
 
   useEffect(() => {
     const fetchBanner = async () => {
@@ -141,11 +147,14 @@ export default function Point() {
     setIsSpinning(true);
 
     try {
-      console.log('🎯 Calling spin API...');
+      // Gọi API quay, chỉ gửi Authorization header, không gửi zaloId trong body
       const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ zaloId: user.zaloId })
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({}) // Không gửi zaloId
       });
 
       if (!response.ok) {
@@ -156,37 +165,25 @@ export default function Point() {
       }
 
       const data = await response.json();
-      console.log('📊 API Response:', data);
-      
       if (!data.voucher) {
         throw new Error('No voucher returned from API');
       }
-      
+
       let winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
         v.VoucherID === data.voucher.VoucherID ||
         v.VoucherID === data.voucher.voucherid ||
         v.Code === data.voucher.Code ||
         v.Code === data.voucher.code
       );
-      
-     if (winnerIndex === -1) {
-      winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
-        v.description === data.voucher.Description ||
-        v.description === data.voucher.description
-      );
       if (winnerIndex === -1) {
-        winnerIndex = 0;
+        winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
+          v.description === data.voucher.Description ||
+          v.description === data.voucher.description
+        );
+        if (winnerIndex === -1) {
+          winnerIndex = 0;
+        }
       }
-    }
-
-    // Thêm log kiểm tra:
-    console.log('Winner index:', winnerIndex);
-    console.log('API voucher:', data.voucher);
-    console.log('FE vouchers:', wheelVouchers.map(v => ({
-      VoucherID: v.VoucherID,
-      Code: v.Code,
-      description: v.description
-    })));
 
       setWheelNumber(winnerIndex);
 
@@ -199,82 +196,42 @@ export default function Point() {
 
       setTimeout(() => {
         setIsSpinning(false);
-        
         const wonDescription = data.voucher.Description || 
                              data.voucher.description || 
                              wheelVouchers[winnerIndex]?.description || 
                              "Voucher";
-        
         setWonWheel(wonDescription);
         setShowConfetti(true);
         setShowModal(true);
-      // Gọi API lưu voucher cho user
-        // if (user && user.zaloId && data.voucher) {
-        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({
-        //       zaloId: user.zaloId,
-        //       voucherId: data.voucher.VoucherID || data.voucher.voucherid
-        //     })
-        //   })
-        //     .then(res => res.json())
-        //     .then(result => {
-        //       if (!result.success) {
-        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
-        //       }
-        //     })
-        //     .catch(() => {
-        //       alert("Lỗi kết nối server khi lưu voucher!");
-        //     });
-        // }
-        // const stored = localStorage.getItem("selectedVoucher");
-        // let selectedList: any[] = [];
-        // if (stored) {
-        //   try {
-        //     const parsed = JSON.parse(stored);
-        //     selectedList = Array.isArray(parsed) ? parsed : [parsed];
-        //   } catch {
-        //     selectedList = [];
-        //   }
-        // }
-        // selectedList = selectedList.map(v => ({ ...v, isNew: false }));
-
-        // const wonVoucher = {
-        //   Id: data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id,
-        //   Name: data.voucher.Name || wheelVouchers[winnerIndex]?.Name || "",
-        //   Description: data.voucher.Description || data.voucher.description || wheelVouchers[winnerIndex]?.Description || wheelVouchers[winnerIndex]?.description || "",
-        //   Code: data.voucher.Code || data.voucher.code || wheelVouchers[winnerIndex]?.Code || "",
-        //   Discount: data.voucher.Discount || wheelVouchers[winnerIndex]?.Discount || 0,
-        //   // Lấy ngày hết hạn từ nhiều trường khác nhau
-        //   ExpiryDate:
-        //     data.voucher.ExpiryDate ||
-        //     data.voucher.expirydate ||
-        //     data.voucher.expiredAt ||
-        //     data.voucher.endDate ||
-        //     wheelVouchers[winnerIndex]?.ExpiryDate ||
-        //     wheelVouchers[winnerIndex]?.expirydate ||
-        //     wheelVouchers[winnerIndex]?.expiredAt ||
-        //     wheelVouchers[winnerIndex]?.endDate ||
-        //     "",
-        //   isNew: true,
-        //   collectedAt: Date.now(),
-        //   uniqueId: `${data.voucher.VoucherID || data.voucher.Id || wheelVouchers[winnerIndex]?.Id}_${Date.now()}`,
-        //   // Thêm các trường khác nếu cần
-        // };
-        
-        // selectedList.push(wonVoucher);
-        // localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
-
+        // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
+        if (token && data.voucher) {
+          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              voucherId: data.voucher.VoucherID || data.voucher.voucherid
+            })
+          })
+            .then(res => res.json())
+            .then(result => {
+              if (!result.success) {
+                alert(result.error || "Có lỗi khi lưu voucher cho user!");
+              }
+            })
+            .catch(() => {
+              alert("Lỗi kết nối server khi lưu voucher!");
+            });
+        }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
 
     } catch (error) {
-      console.error('❌ Spin API error:', error);
+      // Fallback local random nếu API lỗi
       setIsSpinning(false);
-      console.log('🔄 Fallback to local random...');
-      
       const probabilities = wheelVouchers.map(v => v.probability || 0);
       let rand = Math.random();
       let acc = 0;
@@ -300,47 +257,28 @@ export default function Point() {
         setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
         setShowConfetti(true);
         setShowModal(true);
-
-        if (user && user.zaloId && wheelVouchers[winnerIndex]) {
-                fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    zaloId: user.zaloId,
-                    voucherId: wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid
-                  })
-                })
-                  .then(res => res.json())
-                  .then(result => {
-                    if (!result.success) {
-                      alert(result.error || "Có lỗi khi lưu voucher cho user!");
-                    }
-                  })
-                  .catch(() => {
-                    alert("Lỗi kết nối server khi lưu voucher!");
-                  });
+        // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
+        if (token && wheelVouchers[winnerIndex]) {
+          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              voucherId: wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid
+            })
+          })
+            .then(res => res.json())
+            .then(result => {
+              if (!result.success) {
+                alert(result.error || "Có lỗi khi lưu voucher cho user!");
               }
-        // const stored = localStorage.getItem("selectedVoucher");
-        // let selectedList: any[] = [];
-        // if (stored) {
-        //   try {
-        //     const parsed = JSON.parse(stored);
-        //     selectedList = Array.isArray(parsed) ? parsed : [parsed];
-        //   } catch {
-        //     selectedList = [];
-        //   }
-        // }
-        // selectedList = selectedList.map(v => ({ ...v, isNew: false }));
-
-        // const wonVoucher = {
-        //   ...wheelVouchers[winnerIndex],
-        //   isNew: true,
-        //   collectedAt: Date.now(),
-        //   uniqueId: `${wheelVouchers[winnerIndex]?.Id}_${Date.now()}`
-        // };
-        // selectedList.push(wonVoucher);
-        // localStorage.setItem("selectedVoucher", JSON.stringify(selectedList));
-
+            })
+            .catch(() => {
+              alert("Lỗi kết nối server khi lưu voucher!");
+            });
+        }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
