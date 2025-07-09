@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -7,6 +6,13 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const token = localStorage.getItem("zalo_token") || (window as any).zalo_token;
+    if (!token && location.pathname !== "/login") {
+      navigate("/login", { replace: true });
+    }
+  }, [location.pathname, navigate]);
 
   // Xác định trang hiện tại để đánh dấu menu active
   const getCurrentPath = () => {

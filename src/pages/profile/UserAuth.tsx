@@ -6,8 +6,10 @@ function UserAuth() {
   const { user, login, logout, isLoading } = useAuth();
   const navigate = useNavigate();
 
+
+  // Chỉ chuyển hướng sang /login nếu KHÔNG phải đang ở trang chủ ("/")
   React.useEffect(() => {
-    if (!user) {
+    if (!user && window.location.hash !== "#/login") {
       navigate("/login");
     }
   }, [user, navigate]);
