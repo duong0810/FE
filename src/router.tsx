@@ -13,6 +13,7 @@ import AccountUpdate from "./pages/profile/AccountUpdate";
 import VoucherWarehouse from "./pages/voucher/VoucherWarehouse";
 import Point from "./pages/voucher/point";
 import Core from "./pages/voucher/core";
+import LoginPage from "./pages/profile/LoginPage";
 const router = createHashRouter([
   {
     path: "/",
@@ -23,6 +24,7 @@ const router = createHashRouter([
       { path: "/categories", element: <CategoryListPage />, handle: { title: "Danh mục sản phẩm", back: false } },
       { path: "/cart", element: <CartPage />, handle: { title: "Giỏ hàng" } },
       { path: "/profile", element: <ProfilePage />, handle: { logo: true } },
+      { path: "/login", element: <LoginPage />, handle: { title: "Đăng nhập" } },
       { path: "/flash-sales", element: <ProductListPage />, handle: { title: "Flash Sales" } },
       { path: "/category/:id", element: <ProductListPage />, handle: { title: ({ categories, params }) => categories.find((c) => c.id === Number(params.id))?.name } },
       { path: "/product/:id", element: <ProductDetailPage />, handle: { scrollRestoration: 0 } },
@@ -33,7 +35,6 @@ const router = createHashRouter([
       { path: "/voucher-warehouse", element: <VoucherWarehouse />, handle: { title: "kho voucher" } },
       { path: "/point", element: <Point />, handle: { title: "Vòng quay may mắn" } },
       { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },
-
     ],
   },
 ]);
