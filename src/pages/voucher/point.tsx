@@ -47,7 +47,7 @@ export default function Point() {
   // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
   useEffect(() => {
     if (!token) return;
-    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user`, {
+    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/my-vouchers`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
