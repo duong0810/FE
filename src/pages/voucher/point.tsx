@@ -21,8 +21,9 @@ type Voucher = {
 
 export default function Point() {
   // Đồng bộ lấy zaloId giống VoucherWarehouse
+  // Lấy token từ localStorage (ưu tiên key 'zalo_token' nếu có, fallback sang user.token)
   const rawUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const token = rawUser?.token || rawUser?.accessToken || "";
+  const token = localStorage.getItem("zalo_token") || rawUser?.token || rawUser?.accessToken || "";
   const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
   const user = { ...rawUser, zaloId };
   
@@ -43,7 +44,7 @@ export default function Point() {
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
 
-  // Lấy danh sách voucher của user (nếu cần xác thực, gửi Authorization header)
+  // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
   useEffect(() => {
     if (!token) return;
     fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/user`, {
@@ -142,6 +143,10 @@ export default function Point() {
   
 
   const handleSpinClick = async () => {
+    if (!token) {
+      alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+      return;
+    }
     if (isSpinning || wheelVouchers.length === 0) return;
 
     setIsSpinning(true);
@@ -212,7 +217,7 @@ export default function Point() {
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              voucherId: data.voucher.VoucherID || data.voucher.voucherid
+              voucherId: String(data.voucher.VoucherID || data.voucher.voucherid)
             })
           })
             .then(res => res.json())
@@ -266,7 +271,7 @@ export default function Point() {
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              voucherId: wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid
+              voucherId: String(wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid)
             })
           })
             .then(res => res.json())
