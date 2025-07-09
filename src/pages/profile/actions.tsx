@@ -18,9 +18,11 @@ export default function ProfileActions() {
         {
           label: "Thông tin tài khoản",
           icon: ProfileIcon,
-          disabled: !localStorage.getItem("zalo_token"),
+          // Luôn kiểm tra token realtime để tránh cache cũ
+          get disabled() { return !(localStorage.getItem("zalo_token") || (window as any).zalo_token); },
           onClick: () => {
-            if (localStorage.getItem("zalo_token")) navigate("/account");
+            const token = localStorage.getItem("zalo_token") || (window as any).zalo_token;
+            if (token) navigate("/account");
           },
         },
         {
