@@ -20,7 +20,10 @@ type Voucher = {
 };
 
 export default function Point() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  // Đồng bộ lấy zaloId giống VoucherWarehouse
+  const rawUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
+  const user = { ...rawUser, zaloId };
   
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
