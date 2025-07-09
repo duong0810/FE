@@ -231,9 +231,9 @@ export default function VoucherPage() {
                       )} %
                     </span>
                   ) : (
+                    // Nếu là voucher wheel (không có discount), để trống dòng này
                     <span className="text-base font-bold text-blue-700 text-center">
-                      {/* Nếu là voucher từ wheel và không có discount thì để trống, không hiện mã voucher */}
-                      {voucher.Name || ""}
+                      {voucher.Name && voucher.Name !== getVoucherCode(voucher) ? voucher.Name : ""}
                     </span>
                   )}
                 </div>
