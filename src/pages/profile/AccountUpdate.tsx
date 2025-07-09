@@ -12,6 +12,19 @@ export default function AccountUpdate() {
     phone: user.phone || "",
     address: user.address || "",
   });
+
+  // Xử lý nhập ngày sinh dạng dd/mm/yyyy, tự nhảy dấu /
+  const handleBirthdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, "");
+    if (value.length > 8) value = value.slice(0, 8);
+    let formatted = value;
+    if (value.length > 4) {
+      formatted = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4);
+    } else if (value.length > 2) {
+      formatted = value.slice(0, 2) + "/" + value.slice(2);
+    }
+    setForm({ ...form, birthday: formatted });
+  };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -67,7 +80,16 @@ export default function AccountUpdate() {
         </div>
         <div>
           <label className="block text-gray-500 mb-1">Ngày sinh</label>
-          <input name="birthday" value={form.birthday} onChange={handleChange} className="w-full border rounded px-3 py-2" placeholder="yyyy-mm-dd" />
+          <input
+            name="birthday"
+            value={form.birthday}
+            onChange={handleBirthdayChange}
+            className="w-full border rounded px-3 py-2"
+            placeholder="dd/mm/yyyy"
+            maxLength={10}
+            inputMode="numeric"
+            pattern="\d{2}/\d{2}/\d{4}"
+          />
         </div>
         <div>
           <label className="block text-gray-500 mb-1">Số điện thoại</label>

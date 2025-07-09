@@ -48,7 +48,15 @@ export default function AccountInfo() {
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Ngày sinh</span>
-          <span className="font-medium">{user?.birthday || "--"}</span>
+          <span className="font-medium">
+            {user?.birthday
+              ? (() => {
+                  // Hiển thị đúng định dạng dd/mm/yyyy, không có số giờ/phút phía sau
+                  const match = (user.birthday as string).match(/(\d{2}\/\d{2}\/\d{4})/);
+                  return match ? match[1] : user.birthday;
+                })()
+              : "--"}
+          </span>
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Số điện thoại</span>
