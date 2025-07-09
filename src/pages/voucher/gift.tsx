@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 // Kiểu dữ liệu voucher
 type Voucher = {
-  Id: number;
+  Id: string; // BE dùng VARCHAR, luôn string
   Name: string;
   Description: string;
   ExpiryDate?: string;
@@ -61,16 +61,22 @@ export default function VoucherPage() {
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const [debugInfo, setDebugInfo] = useState<string>("");
 
-  // Lấy zaloId từ localStorage hoặc window
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const zaloId = user.zaloId || window.zaloId || "1234567890";
+
+  // Lấy token từ localStorage (ưu tiên key 'zalo_token'), không lấy zaloId, không lưu/lấy voucher ở localStorage
+  const token = localStorage.getItem('zalo_token') || (window as any).zalo_token || "";
 
   useEffect(() => {
-    // Lấy voucher đã claim từ backend
+    // Lấy voucher đã claim từ backend, chỉ gửi Authorization header
     const fetchVouchers = async () => {
       try {
         const res = await fetch(
-          `https://zalo.kosmosdevelopment.com/api/vouchers/user?zaloId=${zaloId}`
+          `https://zalo.kosmosdevelopment.com/api/vouchers/user`,
+          {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : '',
+              'Content-Type': 'application/json',
+            },
+          }
         );
         if (!res.ok) throw new Error("Không lấy được danh sách voucher");
         const data = await res.json();
@@ -93,6 +99,7 @@ export default function VoucherPage() {
             ...v,
             // Luôn trả về boolean true/false cho isNew
             isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
+            Id: v.Id?.toString() || v.Id || v.code || v.Code || v.VoucherCode || "",
           }));
         setSelectedVouchers(validVouchers);
         setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
@@ -107,7 +114,7 @@ export default function VoucherPage() {
     const handleFocus = () => fetchVouchers();
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  }, []);
+  }, [token]);
 
   // Kiểm tra mã hợp lệ
   const isValidCode = selectedVouchers.some(
