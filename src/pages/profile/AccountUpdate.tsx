@@ -1,29 +1,27 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AccountUpdate() {
   const navigate = useNavigate();
-  const userData = localStorage.getItem("user");
-  const user = userData ? JSON.parse(userData) : {};
+  const { user, token } = useAuth();
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
     if (!dateStr) return "";
-    // Nếu là ISO hoặc yyyy-mm-dd thì convert sang dd/mm/yyyy
     const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
     const ymd = dateStr.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
     if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
-    // Nếu đã là dd/mm/yyyy thì giữ nguyên
     const ddmmyyyy = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (ddmmyyyy) return dateStr;
     return dateStr;
   }
   const [form, setForm] = useState({
-    fullname: user.fullName || "",
-    gender: user.gender || "",
-    birthday: toDDMMYYYY(user.birthday || ""),
-    phone: user.phone || "",
-    address: user.address || "",
+    fullname: user?.fullname || user?.fullName || "",
+    gender: user?.gender || user?.sex || "",
+    birthday: toDDMMYYYY(user?.birthday || ""),
+    phone: user?.phone || user?.phonenumber || "",
+    address: user?.address || "",
   });
 
   // Xử lý nhập ngày sinh dạng dd/mm/yyyy, tự nhảy dấu /
@@ -52,7 +50,8 @@ export default function AccountUpdate() {
     setError("");
     setSuccess(false);
     try {
-      const token = localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
+      // Lấy token từ context
+      const authToken = token || localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
       // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
       let birthday = form.birthday;
       const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -65,16 +64,15 @@ export default function AccountUpdate() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
-      // Lưu lại user mới vào localStorage
-      localStorage.setItem("user", JSON.stringify(data.user));
       setSuccess(true);
-      setTimeout(() => navigate("/account"), 1000);
+      // Reload lại trang tài khoản để lấy dữ liệu mới nhất từ BE
+      setTimeout(() => navigate(0), 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
     } finally {
