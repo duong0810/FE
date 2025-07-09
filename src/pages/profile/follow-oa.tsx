@@ -14,7 +14,7 @@ export default function FollowOAWidget() {
   }, []);
 
   const handleNavigateToVoucher = () => {
-    navigate("/voucher-warehouse"); // Điều hướng đến trang "Đổi voucher"
+    navigate(""); // Điều hướng đến trang "Đổi voucher"
   };
 
   return (
