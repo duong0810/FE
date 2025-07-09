@@ -222,9 +222,9 @@ export default function VoucherPage() {
                   <span className="text-lg">🎫</span>
                 </div>
 
-                {/* Dòng 1: Discount hoặc Tên voucher */}
+                {/* Dòng 1: Discount (nếu có) hoặc Tên voucher, KHÔNG hiển thị mã voucher ở đây */}
                 <div className="h-6 flex items-center justify-center mb-1">
-                  {(voucher.Discount || (voucher as any).discount) > 0 ? (
+                  {((voucher.Discount ?? (voucher as any).discount) > 0) ? (
                     <span className="text-base font-bold text-red-700 text-center">
                       {parseFloat(
                         (voucher.Discount ?? (voucher as any).discount).toString()
@@ -232,6 +232,7 @@ export default function VoucherPage() {
                     </span>
                   ) : (
                     <span className="text-base font-bold text-blue-700 text-center">
+                      {/* Nếu là voucher từ wheel và không có discount thì để trống, không hiện mã voucher */}
                       {voucher.Name || ""}
                     </span>
                   )}
