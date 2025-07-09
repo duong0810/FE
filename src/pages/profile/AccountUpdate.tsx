@@ -71,8 +71,8 @@ export default function AccountUpdate() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Reload lại trang tài khoản để lấy dữ liệu mới nhất từ BE
-      setTimeout(() => navigate(0), 1000);
+      // Sau khi cập nhật thành công, chuyển về trang tài khoản và reload lại user context
+      setTimeout(() => navigate("/account", { replace: true }), 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
     } finally {
