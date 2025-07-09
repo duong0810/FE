@@ -17,7 +17,17 @@ function UserAuth() {
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{user.fullname}</h3>
             <p className="text-gray-600">
-              {user.phone ? `+84 ${user.phone.replace(/^84/, '')}` : 'Chưa có số điện thoại'}
+              {user.phone
+                ? (() => {
+                    // Xử lý: nếu đã có +84 hoặc 84 ở đầu thì chỉ thêm dấu + nếu thiếu, không lặp +84
+                    let p = user.phone.trim().replace(/^\+/, "");
+                    if (p.startsWith("84")) p = "+" + p;
+                    else if (p.startsWith("0")) p = "+84" + p.slice(1);
+                    else if (!p.startsWith("+84")) p = "+84" + p;
+                    // Thêm dấu cách sau +84 cho đẹp
+                    return p.replace(/^\+84/, "+84 ");
+                  })()
+                : 'Chưa có số điện thoại'}
             </p>
             {/* Ẩn vai trò user */}
             {/* <p className="text-sm text-gray-500">Vai trò: {user.role}</p> */}
