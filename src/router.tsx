@@ -8,6 +8,8 @@ import ProfilePage from "@/pages/profile";
 import SearchPage from "@/pages/search";
 import { createHashRouter } from "react-router-dom";
 import GiftPage from "./pages/voucher/gift";
+import AccountInfo from "./pages/profile/AccountInfo";
+import AccountUpdate from "./pages/profile/AccountUpdate";
 import VoucherWarehouse from "./pages/voucher/VoucherWarehouse";
 import Point from "./pages/voucher/point";
 import Core from "./pages/voucher/core";
@@ -26,6 +28,8 @@ const router = createHashRouter([
       { path: "/product/:id", element: <ProductDetailPage />, handle: { scrollRestoration: 0 } },
       { path: "/search", element: <SearchPage />, handle: { title: "Tìm kiếm" } },
       { path: "/gift", element: <GiftPage />, handle: { title: "Chọn ưu đãi từ cửa hàng" } },
+      { path: "/account", element: <AccountInfo />, handle: { title: "Tài khoản" } },
+      { path: "/account/update", element: <AccountUpdate />, handle: { title: "Cập nhật tài khoản" } },
       { path: "/voucher-warehouse", element: <VoucherWarehouse />, handle: { title: "kho voucher" } },
       { path: "/point", element: <Point />, handle: { title: "Vòng quay may mắn" } },
       { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },

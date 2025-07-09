@@ -18,7 +18,7 @@ export default function ProfileActions() {
         {
           label: "Thông tin tài khoản",
           icon: ProfileIcon,
-          onClick: toBeImplemented,
+          onClick: () => navigate("/account"), // Điều hướng đến trang AccountInfo
         },
         {
           label: "Quà của tôi",

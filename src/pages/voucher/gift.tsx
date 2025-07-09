@@ -309,10 +309,7 @@ export default function VoucherPage() {
         </div>
       )}
 
-      {/* Debug info */}
-      <div className="mt-4 text-xs text-gray-400">
-        {debugInfo && <p>{debugInfo}</p>}
-      </div>
+      {/* Debug info (đã xoá theo yêu cầu) */}
     </div>
   );
 }

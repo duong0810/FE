@@ -1,0 +1,91 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function AccountUpdate() {
+  const navigate = useNavigate();
+  const userData = localStorage.getItem("user");
+  const user = userData ? JSON.parse(userData) : {};
+  const [form, setForm] = useState({
+    fullname: user.fullName || "",
+    gender: user.gender || "",
+    birthday: user.birthday || "",
+    phone: user.phone || "",
+    address: user.address || "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+    try {
+      const token = localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
+      const res = await fetch("https://zalo.kosmosdevelopment.com/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
+      // Lưu lại user mới vào localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setSuccess(true);
+      setTimeout(() => navigate("/account"), 1000);
+    } catch (err: any) {
+      setError(err.message || "Có lỗi xảy ra");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 mt-4">
+      <h2 className="text-lg font-bold mb-4">Cập nhật tài khoản</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-gray-500 mb-1">Họ tên</label>
+          <input name="fullname" value={form.fullname} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-gray-500 mb-1">Giới tính</label>
+          <select name="gender" value={form.gender} onChange={handleChange} className="w-full border rounded px-3 py-2">
+            <option value="">--</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-gray-500 mb-1">Ngày sinh</label>
+          <input name="birthday" value={form.birthday} onChange={handleChange} className="w-full border rounded px-3 py-2" placeholder="yyyy-mm-dd" />
+        </div>
+        <div>
+          <label className="block text-gray-500 mb-1">Số điện thoại</label>
+          <input name="phone" value={form.phone} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label className="block text-gray-500 mb-1">Địa chỉ</label>
+          <input name="address" value={form.address} onChange={handleChange} className="w-full border rounded px-3 py-2" />
+        </div>
+        {error && <div className="text-red-500 text-sm">{error}</div>}
+        {success && <div className="text-green-600 text-sm">Cập nhật thành công!</div>}
+        <div className="flex gap-2">
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-bold" disabled={loading}>
+            {loading ? "Đang lưu..." : "Lưu"}
+          </button>
+          <button type="button" className="bg-gray-200 px-4 py-2 rounded" onClick={() => navigate("/account")}>Huỷ</button>
+        </div>
+      </form>
+    </div>
+  );
+}
