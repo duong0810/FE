@@ -209,27 +209,27 @@ export default function Point() {
         setShowConfetti(true);
         setShowModal(true);
         // FE: Gọi API lưu voucher cho user
-        if (token && data.voucher) {
-          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              voucherId: String(data.voucher.VoucherID || data.voucher.voucherid)
-            })
-          })
-            .then(res => res.json())
-            .then(result => {
-              if (!result.success) {
-                alert(result.error || "Có lỗi khi lưu voucher cho user!");
-              }
-            })
-            .catch(() => {
-              alert("Lỗi kết nối server khi lưu voucher!");
-            });
-        }
+        // if (token && data.voucher) {
+        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       Authorization: `Bearer ${token}`
+        //     },
+        //     body: JSON.stringify({
+        //       voucherId: String(data.voucher.VoucherID || data.voucher.voucherid)
+        //     })
+        //   })
+        //     .then(res => res.json())
+        //     .then(result => {
+        //       if (!result.success) {
+        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
+        //       }
+        //     })
+        //     .catch(() => {
+        //       alert("Lỗi kết nối server khi lưu voucher!");
+        //     });
+        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
@@ -263,27 +263,27 @@ export default function Point() {
         setShowConfetti(true);
         setShowModal(true);
         // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
-        if (token && wheelVouchers[winnerIndex]) {
-          fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              voucherId: String(wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid)
-            })
-          })
-            .then(res => res.json())
-            .then(result => {
-              if (!result.success) {
-                alert(result.error || "Có lỗi khi lưu voucher cho user!");
-              }
-            })
-            .catch(() => {
-              alert("Lỗi kết nối server khi lưu voucher!");
-            });
-        }
+        // if (token && wheelVouchers[winnerIndex]) {
+        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       Authorization: `Bearer ${token}`
+        //     },
+        //     body: JSON.stringify({
+        //       voucherId: String(wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid)
+        //     })
+        //   })
+        //     .then(res => res.json())
+        //     .then(result => {
+        //       if (!result.success) {
+        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
+        //       }
+        //     })
+        //     .catch(() => {
+        //       alert("Lỗi kết nối server khi lưu voucher!");
+        //     });
+        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
