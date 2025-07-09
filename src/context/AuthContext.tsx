@@ -4,10 +4,17 @@ import { handleZaloLogin } from '@/services/zaloService';
 interface User {
   id: number;
   zaloid: string;
-  fullname: string;
-  phone: string;
-  avatar: string;
-  role: string;
+  fullname?: string;
+  fullName?: string;
+  gender?: string;
+  sex?: string;
+  birthday?: string;
+  phone?: string;
+  phonenumber?: string;
+  address?: string;
+  avatar?: string;
+  role?: string;
+  [key: string]: any;
 }
 
 interface AuthContextType {

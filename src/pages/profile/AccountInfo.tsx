@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -22,36 +21,35 @@ export default function AccountInfo() {
       <div className="divide-y divide-gray-100">
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Họ tên</span>
-          <span className="font-medium">{user?.fullName || "--"}</span>
+          <span className="font-medium">{user?.fullname || user?.fullName || "--"}</span>
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Giới tính</span>
-          <span className="font-medium">{user?.gender || "--"}</span>
+          <span className="font-medium">{user?.gender || user?.sex || "--"}</span>
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Ngày sinh</span>
           <span className="font-medium">
             {user?.birthday
               ? (() => {
-                  // Nếu là ISO (yyyy-mm-dd...), convert sang dd/mm/yyyy
-                  const isoMatch = (user.birthday as string).match(/^(\d{4})-(\d{2})-(\d{2})/);
-                  if (isoMatch) {
-                    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
-                  }
-                  // Nếu đã là dd/mm/yyyy thì giữ nguyên
-                  const ddmmyyyy = (user.birthday as string).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-                  if (ddmmyyyy) return user.birthday;
-                  // Nếu là yyyy/mm/dd thì chuyển
-                  const ymd = (user.birthday as string).match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+                  const val = user.birthday;
+                  // yyyy-mm-dd
+                  const isoMatch = typeof val === "string" && val.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                  if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+                  // yyyy/mm/dd
+                  const ymd = typeof val === "string" && val.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
                   if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
-                  return user.birthday;
+                  // dd/mm/yyyy
+                  const ddmmyyyy = typeof val === "string" && val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                  if (ddmmyyyy) return val;
+                  return val;
                 })()
               : "--"}
           </span>
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Số điện thoại</span>
-          <span className="font-medium">{user?.phone || "--"}</span>
+          <span className="font-medium">{user?.phone || user?.phonenumber || "--"}</span>
         </div>
         <div className="flex justify-between py-2">
           <span className="text-gray-500">Địa chỉ</span>
