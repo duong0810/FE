@@ -8,7 +8,7 @@ function LoginPage() {
 
   React.useEffect(() => {
     if (user) {
-      navigate("/account");
+      navigate("/profile");
     }
   }, [user, navigate]);
 
