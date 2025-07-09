@@ -18,25 +18,28 @@ export default function ProfileActions() {
         {
           label: "Thông tin tài khoản",
           icon: ProfileIcon,
-          onClick: () => navigate("/account"), // Điều hướng đến trang AccountInfo
+          disabled: !localStorage.getItem("zalo_token"),
+          onClick: () => {
+            if (localStorage.getItem("zalo_token")) navigate("/account");
+          },
         },
         {
           label: "Quà của tôi",
           icon: VoucherIcon,
           onClick: () => navigate("/gift"), // Điều hướng đến trang gift
         },
-        ].map((action) => (
+      ].map((action) => (
         <div
           key={action.label}
-          className="flex flex-col items-center cursor-pointer"
-          onClick={action.onClick}
+          className={`flex flex-col items-center cursor-pointer ${action.disabled ? 'opacity-50 pointer-events-none' : ''}`}
+          onClick={action.disabled ? undefined : action.onClick}
         >
           <div className="w-8 h-8 mb-2">
-          <action.icon active />
+            <action.icon active />
           </div>
           <span className="text-sm text-center">{action.label}</span>
         </div>
-        ))}
+      ))}
       
       </div>
   );

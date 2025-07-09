@@ -51,9 +51,18 @@ export default function AccountInfo() {
           <span className="font-medium">
             {user?.birthday
               ? (() => {
-                  // Hiển thị đúng định dạng dd/mm/yyyy, không có số giờ/phút phía sau
-                  const match = (user.birthday as string).match(/(\d{2}\/\d{2}\/\d{4})/);
-                  return match ? match[1] : user.birthday;
+                  // Nếu là ISO (yyyy-mm-dd...), convert sang dd/mm/yyyy
+                  const isoMatch = (user.birthday as string).match(/^(\d{4})-(\d{2})-(\d{2})/);
+                  if (isoMatch) {
+                    return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
+                  }
+                  // Nếu đã là dd/mm/yyyy thì giữ nguyên
+                  const ddmmyyyy = (user.birthday as string).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                  if (ddmmyyyy) return user.birthday;
+                  // Nếu là yyyy/mm/dd thì chuyển
+                  const ymd = (user.birthday as string).match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+                  if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
+                  return user.birthday;
                 })()
               : "--"}
           </span>
