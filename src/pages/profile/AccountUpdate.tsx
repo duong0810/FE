@@ -53,16 +53,12 @@ export default function AccountUpdate() {
     setSuccess(false);
     try {
       const token = localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
-      // Đảm bảo gửi đúng định dạng dd/mm/yyyy, không đảo ngược ngày/tháng
+      // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
       let birthday = form.birthday;
-      // Nếu là dd/mm/yyyy thì giữ nguyên, nếu là yyyy-mm-dd thì convert
       const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (!ddmmyyyy) {
-        // Nếu là yyyy-mm-dd hoặc ISO
-        const isoMatch = birthday.match(/^(\d{4})-(\d{2})-(\d{2})/);
-        if (isoMatch) birthday = `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
-        const ymd = birthday.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-        if (ymd) birthday = `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
+      if (ddmmyyyy) {
+        const [_, day, month, year] = ddmmyyyy;
+        birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       }
       const body = { ...form, birthday };
       const res = await fetch("https://zalo.kosmosdevelopment.com/api/users/me", {
