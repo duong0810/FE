@@ -69,18 +69,29 @@ export default function VoucherPage() {
     // Lấy voucher đã claim từ backend, chỉ gửi Authorization header
     const fetchVouchers = async () => {
       try {
+        // Lấy user từ context hoặc localStorage
+        let userId = null;
+        try {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          userId = user?.id || user?.userId || user?.zaloId || null;
+        } catch {}
+        // Nếu không có token hoặc userId thì báo lỗi
+        if (!token || !userId) {
+          setDebugInfo('Bạn chưa đăng nhập hoặc thiếu thông tin user.');
+          setSelectedVouchers([]);
+          return;
+        }
         const res = await fetch(
-          `https://zalo.kosmosdevelopment.com/api/vouchers/user`,
+          `https://zalo.kosmosdevelopment.com/api/vouchers/my-vouchers`,
           {
             headers: {
-              'Authorization': token ? `Bearer ${token}` : '',
+              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
           }
         );
         if (!res.ok) throw new Error("Không lấy được danh sách voucher");
         const data = await res.json();
-        // data có thể là mảng hoặc object, tùy backend trả về
         let list: Voucher[] = [];
         if (Array.isArray(data)) {
           list = data;
@@ -97,7 +108,6 @@ export default function VoucherPage() {
           )
           .map((v: Voucher) => ({
             ...v,
-            // Luôn trả về boolean true/false cho isNew
             isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
             Id: v.Id?.toString() || v.Id || v.code || v.Code || v.VoucherCode || "",
           }));
