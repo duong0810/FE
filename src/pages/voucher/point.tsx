@@ -208,7 +208,7 @@ export default function Point() {
         setWonWheel(wonDescription);
         setShowConfetti(true);
         setShowModal(true);
-        // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
+        // FE: Gọi API lưu voucher cho user
         if (token && data.voucher) {
           fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
             method: "POST",
