@@ -1,5 +1,13 @@
-import { getUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
+import { getUserInfo as zmpGetUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
 import { API_BASE } from '@/config/zalo';
+// Lấy thông tin user từ backend (API /api/users/me)
+export const getUserInfo = async () => {
+  const response = await fetch(`${API_BASE}/api/users/me`, {
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Không thể lấy thông tin user');
+  return response.json();
+};
 
 // Function decode phone token trên Frontend (IP Việt Nam)
 const decodePhoneToken = async (phoneToken: string, accessToken: string) => {
@@ -41,7 +49,7 @@ export const handleZaloLogin = async () => {
     });
     
     // 2. Lấy thông tin user
-    const userInfo = await getUserInfo({
+    const userInfo = await zmpGetUserInfo({
       autoRequestPermission: true
     });
     console.log('User info from Zalo:', userInfo);
