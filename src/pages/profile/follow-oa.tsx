@@ -10,7 +10,11 @@ export default function FollowOAWidget() {
   useEffect(() => {
     // Gọi API lấy trạng thái follow OA
     getUserInfo().then(user => {
-      setIsFollowOA(user.isFollowOA);
+      if (user && user.isFollowOA) {
+        setIsFollowOA(true);
+      } else {
+        setIsFollowOA(false);
+      }
     });
     showOAWidget({
       id: "oaWidget",
@@ -23,7 +27,7 @@ export default function FollowOAWidget() {
     navigate(""); // hoặc đường dẫn bạn muốn
   };
 
-  
+
   if (isFollowOA) {
     return <div>Bạn đã quan tâm OA! Cảm ơn bạn.</div>;
   }
