@@ -32,7 +32,7 @@ export default function FollowOAWidget() {
       <div>
         <div>Bạn đã quan tâm OA! Cảm ơn bạn.</div>
         <a
-          href="https://zalo.me/PUT_YOUR_OA_ID_HERE"
+          href="https://zalo.me/1830381847645653805"
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
