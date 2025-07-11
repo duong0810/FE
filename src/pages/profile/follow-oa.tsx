@@ -24,7 +24,7 @@ export default function FollowOAWidget() {
   }, []);
 
   const handleNavigateToVoucher = () => {
-    navigate(""); // hoặc đường dẫn bạn muốn
+    window.open("https://zalo.me/1830381847645653805", "_blank");
   };
 
   if (isFollowOA) {
