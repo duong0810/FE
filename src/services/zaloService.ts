@@ -1,9 +1,18 @@
 import { getUserInfo as zmpGetUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
 import { API_BASE } from '@/config/zalo';
 // Lấy thông tin user từ backend (API /api/users/me)
+// Lấy token từ localStorage hoặc nơi bạn lưu sau khi đăng nhập
+const getToken = () => {
+  return localStorage.getItem('token');
+};
+
 export const getUserInfo = async () => {
+  const token = getToken();
+  if (!token) throw new Error('Chưa đăng nhập hoặc thiếu token');
   const response = await fetch(`${API_BASE}/api/users/me`, {
-    credentials: 'include',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
   if (!response.ok) throw new Error('Không thể lấy thông tin user');
   return response.json();

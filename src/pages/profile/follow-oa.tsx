@@ -20,9 +20,10 @@ export default function FollowOAWidget() {
   }, []);
 
   const handleNavigateToVoucher = () => {
-    navigate("/voucher"); // hoặc đường dẫn bạn muốn
+    navigate(""); // hoặc đường dẫn bạn muốn
   };
 
+  
   if (isFollowOA) {
     return <div>Bạn đã quan tâm OA! Cảm ơn bạn.</div>;
   }
