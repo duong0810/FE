@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { handleZaloLogin } from '@/services/zaloService';
+import * as zaloService from '@/services/zaloService';
 
 interface User {
   id: number;
@@ -20,37 +20,54 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: () => Promise<void>;
-  logout: () => void;
   isLoading: boolean;
   refreshUser?: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Khôi phục thông tin từ localStorage khi app khởi động
+  // Luôn tự động lấy access token từ Zalo SDK khi app khởi động
   useEffect(() => {
-    const savedToken = localStorage.getItem('zalo_token');
-    const savedUser = localStorage.getItem('zalo_user');
-    
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
+    const fetchUser = async () => {
+      setIsLoading(true);
+      try {
+        // Lấy access token từ Zalo SDK
+        const accessToken = await zaloService.getAccessToken();
+        setToken(accessToken);
+        if (accessToken) {
+          const res = await fetch('https://zalo.kosmosdevelopment.com/api/users/me', {
+            headers: { 'access-token': accessToken },
+          });
+          const data = await res.json();
+          if (data && data.user) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
-  // Hàm cập nhật user context sau khi cập nhật thông tin tài khoản
+  // Hàm cập nhật lại user context (nếu cần)
   const refreshUser = async () => {
+    if (!token) return;
     try {
-      const token = localStorage.getItem('zalo_token');
-      if (!token) return;
       const res = await fetch('https://zalo.kosmosdevelopment.com/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'access-token': token },
       });
       const data = await res.json();
       if (data && data.user) {
@@ -61,35 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async () => {
-    setIsLoading(true);
-    try {
-      const result = await handleZaloLogin();
-      
-      if (result) {
-        setUser(result.user);
-        setToken(result.token);
-        
-        // Lưu vào localStorage
-        localStorage.setItem('zalo_token', result.token);
-        localStorage.setItem('zalo_user', JSON.stringify(result.user));
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('zalo_token');
-    localStorage.removeItem('zalo_user');
-  };
-
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

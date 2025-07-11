@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 const LoginPage: React.FC = () => {
-  const { user, login, logout, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -26,19 +26,7 @@ const LoginPage: React.FC = () => {
         <p><strong>Tên:</strong> {user.fullname}</p>
         <p><strong>Số điện thoại:</strong> {user.phone}</p>
         <p><strong>Vai trò:</strong> {user.role}</p>
-        <button 
-          onClick={logout}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Đăng xuất
-        </button>
+        {/* Đăng xuất đã bị loại bỏ theo chuẩn Zalo Mini App */}
       </div>
     );
   }
@@ -46,20 +34,8 @@ const LoginPage: React.FC = () => {
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
       <h2>Đăng nhập bằng Zalo</h2>
-      <button 
-        onClick={login}
-        style={{
-          padding: '15px 30px',
-          backgroundColor: '#0084ff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontSize: '16px'
-        }}
-      >
-        Đăng nhập với Zalo
-      </button>
+      {/* Nút đăng nhập đã bị loại bỏ theo chuẩn Zalo Mini App */}
+      <p>Vui lòng truy cập Mini App từ ứng dụng Zalo để sử dụng đầy đủ các tính năng.</p>
     </div>
   );
 };
