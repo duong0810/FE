@@ -27,9 +27,20 @@ export default function FollowOAWidget() {
     navigate(""); // hoặc đường dẫn bạn muốn
   };
 
-
   if (isFollowOA) {
-    return <div>Bạn đã quan tâm OA! Cảm ơn bạn.</div>;
+    return (
+      <div>
+        <div>Bạn đã quan tâm OA! Cảm ơn bạn.</div>
+        <a
+          href="https://zalo.me/PUT_YOUR_OA_ID_HERE"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+        >
+          Bỏ Quan tâm OA
+        </a>
+      </div>
+    );
   }
 
   return (
