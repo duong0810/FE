@@ -8,13 +8,16 @@ const getToken = () => {
 
 export const getUserInfo = async () => {
   const token = getToken();
-  if (!token) throw new Error('Chưa đăng nhập hoặc thiếu token');
+  if (!token) {
+    // Không log lỗi ra console nữa, chỉ trả về null để FE tự xử lý
+    return null;
+  }
   const response = await fetch(`${API_BASE}/api/users/me`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-  if (!response.ok) throw new Error('Không thể lấy thông tin user');
+  if (!response.ok) return null;
   return response.json();
 };
 
