@@ -48,7 +48,7 @@ export default function Point() {
   // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
   useEffect(() => {
     if (!token) return;
-    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/my-vouchers`, {
+    fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -62,7 +62,7 @@ export default function Point() {
   useEffect(() => {
     const fetchWheelConfig = async () => {
       try {
-        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/wheel-config");
+        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
         if (!res.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
         const response = await res.json();
         if (response && typeof response.num_segments === "number") {
@@ -78,7 +78,7 @@ export default function Point() {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/banner-headers");
+        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/banner-headers");
         if (!res.ok) throw new Error("Lỗi khi lấy banner");
         const response = await res.json();
         const bannerData = response.data || response;
@@ -102,7 +102,7 @@ export default function Point() {
     const fetchVouchers = async () => {
       setLoading(true);
       try {
-        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=wheel");
+        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
 
@@ -167,7 +167,7 @@ export default function Point() {
 
     try {
       // Gọi API quay, chỉ gửi Authorization header, không gửi zaloId trong body
-      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/spin-wheel-limit", {
+      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +224,7 @@ export default function Point() {
         setShowModal(true);
         // FE: Gọi API lưu voucher cho user
         // if (token && data.voucher) {
-        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
         //     method: "POST",
         //     headers: {
         //       "Content-Type": "application/json",
@@ -278,7 +278,7 @@ export default function Point() {
         setShowModal(true);
         // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
         // if (token && wheelVouchers[winnerIndex]) {
-        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
+        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
         //     method: "POST",
         //     headers: {
         //       "Content-Type": "application/json",

@@ -11,7 +11,7 @@ const ProductListPage: React.FC = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("https://zalo.kosmosdevelopment.com/api/products");
+        const response = await fetch("https://be-sgv1.onrender.com/api/products");
         if (!response.ok) throw new Error("Lỗi khi lấy sản phẩm");
         const api = await response.json();
         // Lấy mảng sản phẩm từ đúng trường
@@ -21,7 +21,7 @@ const ProductListPage: React.FC = () => {
         price: item.price,
         description: item.description,
         image: item.imageurl
-          ? (item.imageurl.startsWith("http") ? item.imageurl : `https://zalo.kosmosdevelopment.com/${item.imageurl}`)
+          ? (item.imageurl.startsWith("http") ? item.imageurl : `https://be-sgv1.onrender.com/${item.imageurl}`)
           : "", // hoặc để ảnh mặc định nếu muốn
         category: item.category,
         categoryId: "",

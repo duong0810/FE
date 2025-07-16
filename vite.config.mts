@@ -15,7 +15,7 @@ export default () => {
     server: {
       proxy: {
         '/api': {
-          target: 'https://zalo.kosmosdevelopment.com',
+          target: 'https://be-sgv1.onrender.com',
           changeOrigin: true,
           secure: true
         },

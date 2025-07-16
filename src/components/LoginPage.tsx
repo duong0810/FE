@@ -33,8 +33,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h2>Đăng nhập bằng Zalo</h2>
-      {/* Nút đăng nhập đã bị loại bỏ theo chuẩn Zalo Mini App */}
+      <h2>Bạn chưa có quyền truy cập</h2>
       <p>Vui lòng truy cập Mini App từ ứng dụng Zalo để sử dụng đầy đủ các tính năng.</p>
     </div>
   );

@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const accessToken = await zaloService.getAccessToken();
         setToken(accessToken);
         if (accessToken) {
-          const res = await fetch('https://zalo.kosmosdevelopment.com/api/users/me', {
+          const res = await fetch('https://be-sgv1.onrender.com/api/users/me', {
             headers: { 'access-token': accessToken },
           });
           const data = await res.json();
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     if (!token) return;
     try {
-      const res = await fetch('https://zalo.kosmosdevelopment.com/api/users/me', {
+      const res = await fetch('https://be-sgv1.onrender.com/api/users/me', {
         headers: { 'access-token': token },
       });
       const data = await res.json();
