@@ -38,7 +38,7 @@ A template for online sales applications. It provides full features such as prod
    ```bash
    zmp start
    ```
-1. **Open** `localhost:3000` in your browser and start coding 🔥
+1. **Open** `localhost:2999` in your browser and start coding 🔥
 
 ### Using Zalo Mini App Studio
 
