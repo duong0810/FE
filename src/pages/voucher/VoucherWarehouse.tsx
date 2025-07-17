@@ -91,7 +91,7 @@ export default function VoucherWarehouse() {
   const fetchVouchers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=ticket");
+      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=ticket");
       if (!response.ok) {
         throw new Error(
           `Lỗi khi lấy dữ liệu từ server: ${response.status} ${response.statusText}`
@@ -147,7 +147,7 @@ export default function VoucherWarehouse() {
       alert('Vui lòng đăng nhập trước');
       return { success: false, error: 'Chưa đăng nhập' };
     }
-    const response = await fetch('https://zalo.kosmosdevelopment.com/api/vouchers/claim', {
+    const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

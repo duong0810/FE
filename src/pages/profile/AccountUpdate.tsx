@@ -60,7 +60,7 @@ export default function AccountUpdate() {
         birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       }
       const body = { ...form, birthday };
-      const res = await fetch("https://zalo.kosmosdevelopment.com/api/users/me", {
+      const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
