@@ -82,7 +82,7 @@ export default function VoucherPage() {
           return;
         }
         const res = await fetch(
-          `https://zalo.kosmosdevelopment.com/api/vouchers/my-vouchers`,
+          `https://be-sgv1.onrender.com/api/vouchers/my-vouchers`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,

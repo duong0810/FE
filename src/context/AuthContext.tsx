@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = localStorage.getItem('zalo_token');
       if (!token) return;
-      const res = await fetch('https://zalo.kosmosdevelopment.com/api/users/me', {
+      const res = await fetch('https://be-sgv1.onrender.com/api/users/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
