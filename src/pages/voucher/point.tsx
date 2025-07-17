@@ -30,6 +30,7 @@ export default function Point() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
+  const [numSegments, setNumSegments] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
@@ -85,9 +86,18 @@ export default function Point() {
   }, []);
   
   useEffect(() => {
-    const fetchVouchers = async () => {
+    const fetchConfigAndVouchers = async () => {
       setLoading(true);
       try {
+        // 1. Gọi API lấy số lượng ô vòng quay
+        const configRes = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
+        if (!configRes.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
+        const configData = await configRes.json();
+        const num = configData.num_segments || configData.data?.num_segments;
+        setNumSegments(Number(num) || 0);
+        console.log("num_segments từ API:", num);
+
+        // 2. Gọi API lấy danh sách voucher
         const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
@@ -99,7 +109,7 @@ export default function Point() {
           vouchers = data.data || data.vouchers || [];
         }
 
-        // ✅ Sửa mapping với fallback values
+        // Sửa mapping với fallback values
         vouchers = vouchers.map(v => ({
           ...v,
           VoucherID: v.VoucherID || v.voucherid,
@@ -109,18 +119,27 @@ export default function Point() {
           image: v.Image || v.image,
         }));
 
-        
-        console.log("wheelVouchers:", vouchers);
+        // Nếu số lượng voucher khác numSegments, cắt/gộp cho đúng số ô
+        if (num && vouchers.length > num) {
+          vouchers = vouchers.slice(0, num);
+        } else if (num && vouchers.length < num) {
+          // Nếu thiếu, thêm voucher trống
+          for (let i = vouchers.length; i < num; i++) {
+            vouchers.push({ Id: 1000 + i, description: "Trống", probability: 0 });
+          }
+        }
+
         setWheelVouchers(vouchers);
         setError("");
       } catch (err: any) {
         setError(err.message || "Lỗi không xác định");
         setWheelVouchers([]);
+        setNumSegments(0);
       } finally {
         setLoading(false);
       }
     };
-    fetchVouchers();
+    fetchConfigAndVouchers();
   }, []);
   // 👇 THÊM ĐOẠN NÀY - useEffect cho phím Enter
   useEffect(() => {
@@ -291,89 +310,91 @@ export default function Point() {
   };
 
   const renderWheelSegments = () => {
-  if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
-  const segmentColors = [
-    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
-    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
-  ];
-  const segmentAngle = 360 / wheelVouchers.length;
+    // Sử dụng numSegments để render số ô động
+    const segments = wheelVouchers.slice(0, numSegments > 0 ? numSegments : wheelVouchers.length);
+    if (!Array.isArray(segments) || segments.length === 0) return null;
+    const segmentColors = [
+      "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
+      "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
+    ];
+    const segmentAngle = 360 / segments.length;
 
-  return wheelVouchers.map((voucher: Voucher, index: number) => {
-    const startAngle = -90 + index * segmentAngle;
-    const endAngle = -90 + (index + 1) * segmentAngle;
+    return segments.map((voucher: Voucher, index: number) => {
+      const startAngle = -90 + index * segmentAngle;
+      const endAngle = -90 + (index + 1) * segmentAngle;
 
-    const centerX = 200;
-    const centerY = 200;
-    const radius = 190;
+      const centerX = 200;
+      const centerY = 200;
+      const radius = 190;
 
-    const startAngleRad = (startAngle * Math.PI) / 180;
-    const endAngleRad = (endAngle * Math.PI) / 180;
+      const startAngleRad = (startAngle * Math.PI) / 180;
+      const endAngleRad = (endAngle * Math.PI) / 180;
 
-    const x1 = centerX + radius * Math.cos(startAngleRad);
-    const y1 = centerY + radius * Math.sin(startAngleRad);
-    const x2 = centerX + radius * Math.cos(endAngleRad);
-    const y2 = centerY + radius * Math.sin(endAngleRad);
+      const x1 = centerX + radius * Math.cos(startAngleRad);
+      const y1 = centerY + radius * Math.sin(startAngleRad);
+      const x2 = centerX + radius * Math.cos(endAngleRad);
+      const y2 = centerY + radius * Math.sin(endAngleRad);
 
-    const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+      const largeArcFlag = segmentAngle > 180 ? 1 : 0;
 
-    const pathData = [
-      `M ${centerX} ${centerY}`,
-      `L ${x1} ${y1}`,
-      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-      'Z'
-    ].join(' ');
+      const pathData = [
+        `M ${centerX} ${centerY}`,
+        `L ${x1} ${y1}`,
+        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+        'Z'
+      ].join(' ');
 
-    const textAngle = startAngle + segmentAngle / 2;
-    const textRadius = radius * 0.70;
-    const imageRadius = radius * 0.82;
-    const textAngleRad = (textAngle * Math.PI) / 180;
-    const textX = centerX + textRadius * Math.cos(textAngleRad);
-    const textY = centerY + textRadius * Math.sin(textAngleRad);
-    const imageX = centerX + imageRadius * Math.cos(textAngleRad);
-    const imageY = centerY + imageRadius * Math.sin(textAngleRad);
+      const textAngle = startAngle + segmentAngle / 2;
+      const textRadius = radius * 0.70;
+      const imageRadius = radius * 0.82;
+      const textAngleRad = (textAngle * Math.PI) / 180;
+      const textX = centerX + textRadius * Math.cos(textAngleRad);
+      const textY = centerY + textRadius * Math.sin(textAngleRad);
+      const imageX = centerX + imageRadius * Math.cos(textAngleRad);
+      const imageY = centerY + imageRadius * Math.sin(textAngleRad);
 
-    return (
-      <g key={`${voucher.Id}-${index}`}>
-        <path
-          d={pathData}
-          fill={segmentColors[index % segmentColors.length]}
-          stroke="#DC143C"
-          strokeWidth="3"
-          className="transition-all duration-300"
-        />
-        <g transform={`translate(${imageX}, ${imageY}) rotate(${textAngle + 90})`}>
-          {voucher.image ? (
-            <image
-              href={voucher.image}
-              x="-25"
-              y="-15"
-              width="50"
-              height="50" /* 🎯 Giảm kích thước image cho mobile */
-              style={{ borderRadius: "12px" }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          ) : null}
-          <text
-            x="0"
-            y="45" /* 🎯 Điều chỉnh vị trí text */
-            textAnchor="middle"
-            dominantBaseline="hanging"
-            fill="#8B0000"
-            fontSize="10" /* 🎯 Giảm font size cho mobile */
-            fontWeight="bold"
-            fontFamily="serif"
-          >
-            {voucher.description && voucher.description.length > 15 
-              ? voucher.description.substring(0, 12) + "..." 
-              : voucher.description || "Voucher"} {/* 🎯 Cắt text dài */}
-          </text>
+      return (
+        <g key={`${voucher.Id}-${index}`}>
+          <path
+            d={pathData}
+            fill={segmentColors[index % segmentColors.length]}
+            stroke="#DC143C"
+            strokeWidth="3"
+            className="transition-all duration-300"
+          />
+          <g transform={`translate(${imageX}, ${imageY}) rotate(${textAngle + 90})`}>
+            {voucher.image ? (
+              <image
+                href={voucher.image}
+                x="-25"
+                y="-15"
+                width="50"
+                height="50"
+                style={{ borderRadius: "12px" }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : null}
+            <text
+              x="0"
+              y="45"
+              textAnchor="middle"
+              dominantBaseline="hanging"
+              fill="#8B0000"
+              fontSize="10"
+              fontWeight="bold"
+              fontFamily="serif"
+            >
+              {voucher.description && voucher.description.length > 15 
+                ? voucher.description.substring(0, 12) + "..." 
+                : voucher.description || "Voucher"}
+            </text>
+          </g>
         </g>
-      </g>
-    );
-  });
-};
+      );
+    });
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
