@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { useAuth } from "@/context/AuthContext";
 
 export default function AccountUpdate() {
   const navigate = useNavigate();
-  const { user, token, refreshUser } = useAuth();
+  const { user, token } = useAuth();
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
     if (!dateStr) return "";
@@ -61,7 +60,7 @@ export default function AccountUpdate() {
         birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
       }
       const body = { ...form, birthday };
-      const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
+      const res = await fetch("https://zalo.kosmosdevelopment.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -72,8 +71,7 @@ export default function AccountUpdate() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Gọi refreshUser để đồng bộ lại context ngay sau khi cập nhật
-      await refreshUser?.();
+      // Sau khi cập nhật thành công, chuyển về trang tài khoản và reload lại user context
       setTimeout(() => navigate("/account", { replace: true }), 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");

@@ -26,7 +26,7 @@ export default function Point() {
   const token = localStorage.getItem("zalo_token") || rawUser?.token || rawUser?.accessToken || "";
   const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
   const user = { ...rawUser, zaloId };
-
+  
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
@@ -43,12 +43,11 @@ export default function Point() {
     header3: ""
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
-  const [numSegments, setNumSegments] = useState<number>(8); // Số ô vòng quay động
 
   // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
   useEffect(() => {
     if (!token) return;
-    fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
+    fetch(`https://zalo.kosmosdevelopment.com/api/vouchers/my-vouchers`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -58,29 +57,14 @@ export default function Point() {
       .catch(() => setUserVouchers([]));
   }, [token, showModal]);
 
-  // Lấy số ô vòng quay động từ API
-  useEffect(() => {
-    const fetchWheelConfig = async () => {
-      try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
-        if (!res.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
-        const response = await res.json();
-        if (response && typeof response.num_segments === "number") {
-          setNumSegments(response.num_segments);
-        }
-      } catch (error) {
-        setNumSegments(8); // fallback mặc định
-      }
-    };
-    fetchWheelConfig();
-  }, []);
-
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/banner-headers");
+        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/banner-headers");
         if (!res.ok) throw new Error("Lỗi khi lấy banner");
         const response = await res.json();
+        console.log("Banner response:", response);
+        
         const bannerData = response.data || response;
         setBanner({
           header1: bannerData.header1 || "CHÚC MỪNG NĂM MỚI",
@@ -88,6 +72,7 @@ export default function Point() {
           header3: bannerData.header3 || "2025 - NĂM RỒNG VÀNG"
         });
       } catch (error) {
+        console.error("Lỗi fetch banner:", error);
         setBanner({
           header1: "CHÚC MỪNG NĂM MỚI",
           header2: "VÒNG QUAY MAY MẮN",
@@ -95,6 +80,7 @@ export default function Point() {
         });
       }
     };
+    
     fetchBanner();
   }, []);
   
@@ -102,7 +88,7 @@ export default function Point() {
     const fetchVouchers = async () => {
       setLoading(true);
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
+        const res = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
 
@@ -167,7 +153,7 @@ export default function Point() {
 
     try {
       // Gọi API quay, chỉ gửi Authorization header, không gửi zaloId trong body
-      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
+      const response = await fetch("https://zalo.kosmosdevelopment.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +210,7 @@ export default function Point() {
         setShowModal(true);
         // FE: Gọi API lưu voucher cho user
         // if (token && data.voucher) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
+        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
         //     method: "POST",
         //     headers: {
         //       "Content-Type": "application/json",
@@ -278,7 +264,7 @@ export default function Point() {
         setShowModal(true);
         // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
         // if (token && wheelVouchers[winnerIndex]) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
+        //   fetch("https://zalo.kosmosdevelopment.com/api/vouchers/assign", {
         //     method: "POST",
         //     headers: {
         //       "Content-Type": "application/json",
@@ -305,92 +291,89 @@ export default function Point() {
   };
 
   const renderWheelSegments = () => {
-    if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
-    // Số ô vòng quay lấy từ numSegments, nếu voucher ít hơn thì lặp lại voucher cho đủ ô
-    const segmentColors = [
-      "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
-      "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
-    ];
-    const segmentAngle = 360 / numSegments;
-    // Lặp lại voucher nếu số voucher < numSegments
-    const segments = Array.from({ length: numSegments }, (_, i) => wheelVouchers[i % wheelVouchers.length]);
+  if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
+  const segmentColors = [
+    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
+    "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
+  ];
+  const segmentAngle = 360 / wheelVouchers.length;
 
-    return segments.map((voucher: Voucher, index: number) => {
-      const startAngle = -90 + index * segmentAngle;
-      const endAngle = -90 + (index + 1) * segmentAngle;
+  return wheelVouchers.map((voucher: Voucher, index: number) => {
+    const startAngle = -90 + index * segmentAngle;
+    const endAngle = -90 + (index + 1) * segmentAngle;
 
-      const centerX = 200;
-      const centerY = 200;
-      const radius = 190;
+    const centerX = 200;
+    const centerY = 200;
+    const radius = 190;
 
-      const startAngleRad = (startAngle * Math.PI) / 180;
-      const endAngleRad = (endAngle * Math.PI) / 180;
+    const startAngleRad = (startAngle * Math.PI) / 180;
+    const endAngleRad = (endAngle * Math.PI) / 180;
 
-      const x1 = centerX + radius * Math.cos(startAngleRad);
-      const y1 = centerY + radius * Math.sin(startAngleRad);
-      const x2 = centerX + radius * Math.cos(endAngleRad);
-      const y2 = centerY + radius * Math.sin(endAngleRad);
+    const x1 = centerX + radius * Math.cos(startAngleRad);
+    const y1 = centerY + radius * Math.sin(startAngleRad);
+    const x2 = centerX + radius * Math.cos(endAngleRad);
+    const y2 = centerY + radius * Math.sin(endAngleRad);
 
-      const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+    const largeArcFlag = segmentAngle > 180 ? 1 : 0;
 
-      const pathData = [
-        `M ${centerX} ${centerY}`,
-        `L ${x1} ${y1}`,
-        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-        'Z'
-      ].join(' ');
+    const pathData = [
+      `M ${centerX} ${centerY}`,
+      `L ${x1} ${y1}`,
+      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+      'Z'
+    ].join(' ');
 
-      const textAngle = startAngle + segmentAngle / 2;
-      const textRadius = radius * 0.70;
-      const imageRadius = radius * 0.82;
-      const textAngleRad = (textAngle * Math.PI) / 180;
-      const textX = centerX + textRadius * Math.cos(textAngleRad);
-      const textY = centerY + textRadius * Math.sin(textAngleRad);
-      const imageX = centerX + imageRadius * Math.cos(textAngleRad);
-      const imageY = centerY + imageRadius * Math.sin(textAngleRad);
+    const textAngle = startAngle + segmentAngle / 2;
+    const textRadius = radius * 0.70;
+    const imageRadius = radius * 0.82;
+    const textAngleRad = (textAngle * Math.PI) / 180;
+    const textX = centerX + textRadius * Math.cos(textAngleRad);
+    const textY = centerY + textRadius * Math.sin(textAngleRad);
+    const imageX = centerX + imageRadius * Math.cos(textAngleRad);
+    const imageY = centerY + imageRadius * Math.sin(textAngleRad);
 
-      return (
-        <g key={`${voucher.Id}-${index}`}>
-          <path
-            d={pathData}
-            fill={segmentColors[index % segmentColors.length]}
-            stroke="#DC143C"
-            strokeWidth="3"
-            className="transition-all duration-300"
-          />
-          <g transform={`translate(${imageX}, ${imageY}) rotate(${textAngle + 90})`}>
-            {voucher.image ? (
-              <image
-                href={voucher.image}
-                x="-25"
-                y="-15"
-                width="50"
-                height="50"
-                style={{ borderRadius: "12px" }}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : null}
-            <text
-              x="0"
-              y="45"
-              textAnchor="middle"
-              dominantBaseline="hanging"
-              fill="#8B0000"
-              fontSize="10"
-              fontWeight="bold"
-              fontFamily="serif"
-            >
-              {voucher.description && voucher.description.length > 15
-                ? voucher.description.substring(0, 12) + "..."
-                : voucher.description || "Voucher"}
-            </text>
-          </g>
+    return (
+      <g key={`${voucher.Id}-${index}`}>
+        <path
+          d={pathData}
+          fill={segmentColors[index % segmentColors.length]}
+          stroke="#DC143C"
+          strokeWidth="3"
+          className="transition-all duration-300"
+        />
+        <g transform={`translate(${imageX}, ${imageY}) rotate(${textAngle + 90})`}>
+          {voucher.image ? (
+            <image
+              href={voucher.image}
+              x="-25"
+              y="-15"
+              width="50"
+              height="50" /* 🎯 Giảm kích thước image cho mobile */
+              style={{ borderRadius: "12px" }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : null}
+          <text
+            x="0"
+            y="45" /* 🎯 Điều chỉnh vị trí text */
+            textAnchor="middle"
+            dominantBaseline="hanging"
+            fill="#8B0000"
+            fontSize="10" /* 🎯 Giảm font size cho mobile */
+            fontWeight="bold"
+            fontFamily="serif"
+          >
+            {voucher.description && voucher.description.length > 15 
+              ? voucher.description.substring(0, 12) + "..." 
+              : voucher.description || "Voucher"} {/* 🎯 Cắt text dài */}
+          </text>
         </g>
-      );
-    });
-  };
+      </g>
+    );
+  });
+};
 
   return (
     <div className="min-h-screen relative overflow-hidden">

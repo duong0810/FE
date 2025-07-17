@@ -23,7 +23,6 @@ interface AuthContextType {
   login: () => Promise<void>;
   logout: () => void;
   isLoading: boolean;
-  refreshUser?: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,23 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(JSON.parse(savedUser));
     }
   }, []);
-
-  // Hàm cập nhật user context sau khi cập nhật thông tin tài khoản
-  const refreshUser = async () => {
-    try {
-      const token = localStorage.getItem('zalo_token');
-      if (!token) return;
-      const res = await fetch('https://be-sgv1.onrender.com/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data && data.user) {
-        setUser(data.user);
-      }
-    } catch (e) {
-      // ignore
-    }
-  };
 
   const login = async () => {
     setIsLoading(true);
@@ -89,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
