@@ -1,9 +1,19 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
+import { authorize } from "zmp-sdk/apis";
 
 function UserAuth() {
   const { user } = useAuth();
-
+  // Hàm gọi lại popup xin quyền
+  const handleRequestPermission = async () => {
+    try {
+      await authorize({ scopes: ["scope.userInfo", "scope.userPhonenumber"] });
+      window.location.reload(); // reload lại để lấy quyền mới
+    } catch (e) {
+      // Có thể show toast hoặc log lỗi nếu cần
+    }
+  };
+  
   if (!user) {
     return (
       <div className="bg-white rounded-lg p-4 shadow-sm text-center">
