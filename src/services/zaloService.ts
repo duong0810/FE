@@ -1,4 +1,4 @@
-import { getUserInfo, authorize, getPhoneNumber, getAccessToken } from 'zmp-sdk/apis';
+import { getUserInfo, authorize, getPhoneNumber, getAccessToken, getSetting } from 'zmp-sdk/apis';
 import { API_BASE } from '@/config/zalo';
 
 // Function decode phone token trên Frontend (IP Việt Nam)
@@ -34,19 +34,30 @@ const decodePhoneToken = async (phoneToken: string, accessToken: string) => {
 export const handleZaloLogin = async () => {
   try {
     console.log('Bắt đầu đăng nhập Zalo...');
-    
-    // 1. Xin quyền
-    await authorize({ 
-      scopes: ['scope.userInfo', 'scope.userPhonenumber'] 
-    });
-    
-    // 2. Lấy thông tin user
+
+    // 1. Kiểm tra quyền hiện tại
+    type ZaloPermission = "scope.userInfo" | "scope.userPhonenumber";
+    // Zalo SDK getSetting().authSetting: Partial<{ [key: string]: boolean }>
+    const setting = await getSetting();
+    const scopesToRequest: ZaloPermission[] = [];
+    if (!setting.authSetting?.["scope.userInfo"]) {
+      scopesToRequest.push("scope.userInfo");
+    }
+    if (!setting.authSetting?.["scope.userPhonenumber"]) {
+      scopesToRequest.push("scope.userPhonenumber");
+    }
+    // 2. Chỉ xin quyền còn thiếu
+    if (scopesToRequest.length > 0) {
+      await authorize({ scopes: scopesToRequest });
+    }
+
+    // 3. Lấy thông tin user
     const userInfo = await getUserInfo({
       autoRequestPermission: true
     });
     console.log('User info from Zalo:', userInfo);
-    
-    // 3. Lấy access token
+
+    // 4. Lấy access token
     let accessToken: string | null = null;
     try {
       const tokenResponse = await getAccessToken();
@@ -56,8 +67,8 @@ export const handleZaloLogin = async () => {
     } catch (tokenError) {
       console.log('Cannot get access token:', tokenError);
     }
-    
-    // 4. Decode phone trên Frontend (IP Việt Nam)
+
+    // 5. Decode phone trên Frontend (IP Việt Nam)
     let phoneNumber: string | null = null;
     console.log('=== PHONE DECODE PROCESS START ===');
     
