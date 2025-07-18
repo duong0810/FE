@@ -2,12 +2,12 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 
 const LoginPage: React.FC = () => {
-  const { user, login, logout, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
-        <p>Đang đăng nhập...</p>
+        <p>Đang xác thực với Zalo Mini App...</p>
       </div>
     );
   }
@@ -26,40 +26,14 @@ const LoginPage: React.FC = () => {
         <p><strong>Tên:</strong> {user.fullname}</p>
         <p><strong>Số điện thoại:</strong> {user.phone}</p>
         <p><strong>Vai trò:</strong> {user.role}</p>
-        <button 
-          onClick={logout}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Đăng xuất
-        </button>
       </div>
     );
   }
 
   return (
     <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h2>Đăng nhập bằng Zalo</h2>
-      <button 
-        onClick={login}
-        style={{
-          padding: '15px 30px',
-          backgroundColor: '#0084ff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontSize: '16px'
-        }}
-      >
-        Đăng nhập với Zalo
-      </button>
+      <h2>Vui lòng truy cập qua Zalo Mini App để sử dụng ứng dụng.</h2>
+      <p>Ứng dụng này chỉ hỗ trợ xác thực qua Zalo, không có nút đăng nhập hoặc đăng xuất.</p>
     </div>
   );
 };

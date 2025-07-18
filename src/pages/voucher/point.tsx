@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from '@/context/AuthContext';
 
 
 // Định nghĩa kiểu dữ liệu cho voucher - sửa để cho phép undefined
@@ -19,14 +20,10 @@ type Voucher = {
   ExpiryDate?: string; // ✅ Cho phép undefined
 };
 
+
 export default function Point() {
-  // Đồng bộ lấy zaloId giống VoucherWarehouse
-  // Lấy token từ localStorage (ưu tiên key 'zalo_token' nếu có, fallback sang user.token)
-  const rawUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const token = localStorage.getItem("zalo_token") || rawUser?.token || rawUser?.accessToken || "";
-  const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
-  const user = { ...rawUser, zaloId };
-  
+  // Lấy token và user từ context
+  const { token, user } = useAuth();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);

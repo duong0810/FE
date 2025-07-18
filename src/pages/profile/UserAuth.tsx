@@ -1,20 +1,16 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 
-import { useNavigate } from "react-router-dom";
 function UserAuth() {
-  const { user, login, logout, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-
-  // Chỉ chuyển hướng sang /login nếu KHÔNG phải đang ở trang chủ ("/")
-  React.useEffect(() => {
-    if (!user && window.location.hash !== "#/login") {
-      navigate("/login");
-    }
-  }, [user, navigate]);
-
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="bg-white rounded-lg p-4 shadow-sm text-center">
+        <p>Vui lòng truy cập qua Zalo Mini App để sử dụng chức năng này.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm">
@@ -38,15 +34,8 @@ function UserAuth() {
               : 'Chưa có số điện thoại'}
           </p>
         </div>
-        <button 
-          onClick={logout}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-        >
-          Đăng xuất
-        </button>
       </div>
     </div>
-
   );
 }
 

@@ -50,8 +50,8 @@ export default function AccountUpdate() {
     setError("");
     setSuccess(false);
     try {
-      // Lấy token từ context
-      const authToken = token || localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
+      // Luôn lấy token từ context
+      const authToken = token;
       // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
       let birthday = form.birthday;
       const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);

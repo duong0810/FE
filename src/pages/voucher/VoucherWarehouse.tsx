@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +26,7 @@ type Voucher = {
 };
 
 export default function VoucherWarehouse() {
+  const { token } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -142,7 +144,6 @@ export default function VoucherWarehouse() {
 
   // Hàm claim voucher mới
   const claimVoucher = async (voucherId: string) => {
-    const token = localStorage.getItem('zalo_token');
     if (!token) {
       alert('Vui lòng đăng nhập trước');
       return { success: false, error: 'Chưa đăng nhập' };
