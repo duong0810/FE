@@ -13,11 +13,17 @@ function UserAuth() {
       // Có thể show toast hoặc log lỗi nếu cần
     }
   };
-  
+
   if (!user) {
     return (
       <div className="bg-white rounded-lg p-4 shadow-sm text-center">
         <p>Vui lòng truy cập qua Zalo Mini App để sử dụng chức năng này.</p>
+        <button
+          onClick={handleRequestPermission}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Cấp quyền truy cập
+        </button>
       </div>
     );
   }
