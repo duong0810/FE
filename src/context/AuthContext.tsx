@@ -27,19 +27,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Chuyển đổi dữ liệu từ Zalo SDK sang User chuẩn
+  const mapZaloUserInfo = (info: any): User => ({
+    id: info.id || info.zaloId || '',
+    zaloid: info.zaloId || info.id || '',
+    fullname: info.fullName || info.name || '',
+    gender: info.gender || info.sex || '',
+    birthday: info.birthday || '',
+    phone: info.phoneNumber || info.phone || '',
+    avatar: info.avatar || '',
+    ...info
+  });
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Tự động xác thực qua Zalo SDK khi app khởi động
+  // Khi app load, chỉ kiểm tra xem đã có quyền chưa (không tự động xin quyền)
   useEffect(() => {
-    const fetchZaloAuth = async () => {
+    const checkZaloAuth = async () => {
       setIsLoading(true);
       try {
-        const result = await handleZaloLogin();
-        if (result) {
-          setUser(result.user);
-          setToken(result.token);
+        // Chỉ lấy thông tin user nếu đã có quyền
+        // Không gọi authorize, chỉ gọi getSetting và getUserInfo nếu đã có quyền
+        const { getSetting, getUserInfo, getAccessToken } = await import('zmp-sdk');
+        const setting = await getSetting();
+        const hasUserInfo = setting.authSetting?.["scope.userInfo"];
+        const hasPhone = setting.authSetting?.["scope.userPhonenumber"];
+        if (hasUserInfo && hasPhone) {
+          const userInfoRaw = await getUserInfo();
+          const token = await getAccessToken();
+          const userInfo = mapZaloUserInfo(userInfoRaw);
+          setUser(userInfo);
+          setToken(token);
         } else {
           setUser(null);
           setToken(null);
@@ -51,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
-    fetchZaloAuth();
+    checkZaloAuth();
   }, []);
 
   return (
