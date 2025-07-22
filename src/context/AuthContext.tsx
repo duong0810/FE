@@ -42,23 +42,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Khi app load, chỉ kiểm tra xem đã có quyền chưa (không tự động xin quyền)
+  // Tự động xác thực qua Zalo SDK khi app khởi động
   useEffect(() => {
-    const checkZaloAuth = async () => {
+    const fetchZaloAuth = async () => {
       setIsLoading(true);
       try {
-        // Chỉ lấy thông tin user nếu đã có quyền
-        // Không gọi authorize, chỉ gọi getSetting và getUserInfo nếu đã có quyền
-        const { getSetting, getUserInfo, getAccessToken } = await import('zmp-sdk');
-        const setting = await getSetting();
-        const hasUserInfo = setting.authSetting?.["scope.userInfo"];
-        const hasPhone = setting.authSetting?.["scope.userPhonenumber"];
-        if (hasUserInfo && hasPhone) {
-          const userInfoRaw = await getUserInfo();
-          const token = await getAccessToken();
-          const userInfo = mapZaloUserInfo(userInfoRaw);
-          setUser(userInfo);
-          setToken(token);
+        const result = await handleZaloLogin();
+        if (result) {
+          setUser(result.user);
+          setToken(result.token);
         } else {
           setUser(null);
           setToken(null);
@@ -70,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     };
-    checkZaloAuth();
+    fetchZaloAuth();
   }, []);
 
   return (
