@@ -27,22 +27,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Chuyển đổi dữ liệu từ Zalo SDK sang User chuẩn
-  const mapZaloUserInfo = (info: any): User => ({
-    id: info.id || info.zaloId || '',
-    zaloid: info.zaloId || info.id || '',
-    fullname: info.fullName || info.name || '',
-    gender: info.gender || info.sex || '',
-    birthday: info.birthday || '',
-    phone: info.phoneNumber || info.phone || '',
-    avatar: info.avatar || '',
-    ...info
-  });
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Khi app load, chỉ kiểm tra xem đã có quyền chưa (không tự động xin quyền)
   // Tự động xác thực qua Zalo SDK khi app khởi động
   useEffect(() => {
     const fetchZaloAuth = async () => {

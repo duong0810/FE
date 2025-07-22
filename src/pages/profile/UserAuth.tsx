@@ -17,16 +17,12 @@ function UserAuth() {
   if (!user) {
     return (
       <div className="bg-white rounded-lg p-4 shadow-sm text-center">
-        <h2 className="font-bold text-lg mb-2">Đăng nhập để sử dụng đầy đủ tính năng</h2>
-        <p className="mb-4 text-gray-700">
-          Để bảo vệ quyền riêng tư, Mini App chỉ xin quyền khi bạn thực hiện các chức năng cá nhân hóa như nhận ưu đãi, quản lý tài khoản, v.v.<br/>
-          Vui lòng đăng nhập để trải nghiệm tốt nhất và nhận các quyền lợi dành riêng cho bạn.
-        </p>
+        <p>Vui lòng truy cập qua Zalo Mini App để sử dụng chức năng này.</p>
         <button
           onClick={handleRequestPermission}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
-          Đăng nhập với Zalo
+          Cấp quyền truy cập để tiếp tục 
         </button>
       </div>
     );
