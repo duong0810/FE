@@ -48,18 +48,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       try {
         // Chỉ lấy thông tin user nếu đã có quyền
-        // Không gọi authorize, chỉ gọi getSetting và getUserInfo nếu đã có quyền
         const { getSetting, getUserInfo, getAccessToken } = await import('zmp-sdk');
         const setting = await getSetting();
         const hasUserInfo = setting.authSetting?.["scope.userInfo"];
         const hasPhone = setting.authSetting?.["scope.userPhonenumber"];
         if (hasUserInfo && hasPhone) {
+          // Đã có quyền, lấy thông tin user như cũ
           const userInfoRaw = await getUserInfo();
           const token = await getAccessToken();
           const userInfo = mapZaloUserInfo(userInfoRaw);
           setUser(userInfo);
           setToken(token);
         } else {
+          // Chưa có quyền, không gọi authorize, user = null
           setUser(null);
           setToken(null);
         }
