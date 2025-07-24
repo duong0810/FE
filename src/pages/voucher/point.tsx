@@ -23,7 +23,7 @@ type Voucher = {
 
 export default function Point() {
   // Lấy token và user từ context
-  const { token, user } = useAuth();
+  const { token, user, loginWithZalo } = useAuth();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
@@ -159,30 +159,50 @@ export default function Point() {
   
 
   const handleSpinClick = async () => {
-    if (!token) {
-      ("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+    let currentToken = token;
+    if (!currentToken) {
+      alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
       return;
     }
     if (isSpinning || wheelVouchers.length === 0) return;
 
     setIsSpinning(true);
 
-    try {
-      // Gọi API quay, chỉ gửi Authorization header, không gửi zaloId trong body
+    // Hàm gọi API quay, có thể thử lại sau khi loginWithZalo
+    const spinApi = async (tokenToUse: string) => {
       const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${tokenToUse}`
         },
-        body: JSON.stringify({}) // Không gửi zaloId
+        body: JSON.stringify({})
       });
+      return response;
+    };
 
+    try {
+      let response = await spinApi(currentToken);
+      // Nếu lỗi thiếu thông tin user, thử login lại rồi gọi lại API
       if (!response.ok) {
         const errData = await response.json();
-        (errData.error || "Bạn đã hết lượt quay!");
-        setIsSpinning(false);
-        return;
+        if (errData.message && errData.message.includes("Thiếu thông tin user")) {
+          await loginWithZalo();
+          // Lấy lại token mới từ context
+          currentToken = localStorage.getItem("token");
+          if (!currentToken) throw new Error("Vui lòng đăng nhập lại!");
+          response = await spinApi(currentToken);
+          if (!response.ok) {
+            const errData2 = await response.json();
+            alert(errData2.message || "Bạn đã hết lượt quay!");
+            setIsSpinning(false);
+            return;
+          }
+        } else {
+          alert(errData.message || "Bạn đã hết lượt quay!");
+          setIsSpinning(false);
+          return;
+        }
       }
 
       const data = await response.json();
@@ -224,28 +244,6 @@ export default function Point() {
         setWonWheel(wonDescription);
         setShowConfetti(true);
         setShowModal(true);
-        // FE: Gọi API lưu voucher cho user
-        // if (token && data.voucher) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       Authorization: `Bearer ${token}`
-        //     },
-        //     body: JSON.stringify({
-        //       voucherId: String(data.voucher.VoucherID || data.voucher.voucherid)
-        //     })
-        //   })
-        //     .then(res => res.json())
-        //     .then(result => {
-        //       if (!result.success) {
-        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
-        //       }
-        //     })
-        //     .catch(() => {
-        //       alert("Lỗi kết nối server khi lưu voucher!");
-        //     });
-        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
@@ -278,28 +276,6 @@ export default function Point() {
         setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
         setShowConfetti(true);
         setShowModal(true);
-        // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
-        // if (token && wheelVouchers[winnerIndex]) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       Authorization: `Bearer ${token}`
-        //     },
-        //     body: JSON.stringify({
-        //       voucherId: String(wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid)
-        //     })
-        //   })
-        //     .then(res => res.json())
-        //     .then(result => {
-        //       if (!result.success) {
-        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
-        //       }
-        //     })
-        //     .catch(() => {
-        //       alert("Lỗi kết nối server khi lưu voucher!");
-        //     });
-        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);

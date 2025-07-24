@@ -26,7 +26,7 @@ type Voucher = {
 };
 
 export default function VoucherWarehouse() {
-  const { token } = useAuth();
+  const { token, loginWithZalo } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -144,18 +144,39 @@ export default function VoucherWarehouse() {
 
   // Hàm claim voucher mới
   const claimVoucher = async (voucherId: string) => {
-    if (!token) {
-      ('Vui lòng đăng nhập trước');
+    let currentToken = token;
+    if (!currentToken) {
+      toast.error('Vui lòng đăng nhập trước');
       return { success: false, error: 'Chưa đăng nhập' };
     }
-    const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ voucherId })
-    });
+    // Hàm gọi API claim voucher, có thể thử lại sau khi loginWithZalo
+    const claimApi = async (tokenToUse: string) => {
+      const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenToUse}`
+        },
+        body: JSON.stringify({ voucherId })
+      });
+      return response;
+    };
+    let response = await claimApi(currentToken);
+    if (!response.ok) {
+      const errData = await response.json();
+      if (errData.message && errData.message.includes('Thiếu thông tin user')) {
+        await loginWithZalo();
+        currentToken = localStorage.getItem('token');
+        if (!currentToken) return { success: false, error: 'Vui lòng đăng nhập lại!' };
+        response = await claimApi(currentToken);
+        if (!response.ok) {
+          const errData2 = await response.json();
+          return { success: false, error: errData2.message || 'Thu thập voucher thất bại!' };
+        }
+      } else {
+        return { success: false, error: errData.message || 'Thu thập voucher thất bại!' };
+      }
+    }
     return response.json();
   };
 
