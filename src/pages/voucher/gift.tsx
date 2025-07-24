@@ -74,8 +74,8 @@ export default function VoucherPage() {
           `https://be-sgv1.onrender.com/api/vouchers/my-vouchers`,
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
             },
           }
         );

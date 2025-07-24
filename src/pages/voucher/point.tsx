@@ -42,11 +42,12 @@ export default function Point() {
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
 
-  // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
+  // Lấy danh sách voucher của user (luôn gửi Authorization header nếu có token)
   useEffect(() => {
     if (!token) return;
     fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       }
     })
@@ -170,7 +171,7 @@ export default function Point() {
 
     // Hàm gọi API quay, chỉ gửi token, không gửi zaloid/zaloId trong body
     const spinApi = async (tokenToUse: string) => {
-      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
+      return fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +179,6 @@ export default function Point() {
         },
         body: JSON.stringify({})
       });
-      return response;
     };
 
     try {
