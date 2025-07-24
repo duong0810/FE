@@ -76,9 +76,12 @@ export default function AccountUpdate() {
       return;
     }
 
+    // Log token trước khi gửi request
+    console.log("Token FE gửi lên backend:", currentToken);
+
     // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
     let birthday = form.birthday;
-    const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    const ddmmyyyy = birthday.match(/^\(\d{2}\)\/(\d{2})\/(\d{4})$/);
     if (ddmmyyyy) {
       const [_, day, month, year] = ddmmyyyy;
       birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
