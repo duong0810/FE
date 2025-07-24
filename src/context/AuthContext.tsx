@@ -22,6 +22,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   loginWithZalo: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +33,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Hàm cập nhật user từ bên ngoài (sau khi cập nhật profile)
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+  };
 
   // Hàm này sẽ được gọi thủ công khi người dùng nhấn nút xin quyền
   const loginWithZalo = async () => {
@@ -54,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, loginWithZalo }}>
+    <AuthContext.Provider value={{ user, token, isLoading, loginWithZalo, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

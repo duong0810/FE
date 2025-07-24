@@ -1,10 +1,12 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export default function AccountUpdate() {
+
   const navigate = useNavigate();
-  const { user, token, loginWithZalo } = useAuth();
+  const { user, token, loginWithZalo, updateUser } = useAuth();
 
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
@@ -115,7 +117,7 @@ export default function AccountUpdate() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Sau khi cập nhật thành công, lấy lại thông tin user mới nhất
+      // Sau khi cập nhật thành công, lấy lại thông tin user mới nhất và cập nhật vào context
       try {
         const profileRes = await fetch("https://be-sgv1.onrender.com/api/users/me", {
           method: "GET",
@@ -126,16 +128,11 @@ export default function AccountUpdate() {
         });
         const profileData = await profileRes.json();
         if (profileData.success && profileData.user) {
-          // Nếu context có hàm cập nhật user thì gọi ở đây, ví dụ: updateUser(profileData.user)
-          if (typeof window !== "undefined") {
-            // Lưu user mới vào localStorage nếu cần
-            localStorage.setItem("user", JSON.stringify(profileData.user));
-          }
+          updateUser(profileData.user);
         }
       } catch {}
       setTimeout(() => {
         navigate("/account", { replace: true });
-        window.location.reload(); // Đảm bảo trang account hiển thị dữ liệu mới
       }, 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
