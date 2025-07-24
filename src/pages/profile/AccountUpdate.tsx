@@ -54,15 +54,31 @@ export default function AccountUpdate() {
     let currentUser = user;
     let currentToken = token;
 
-    // Nếu thiếu user hoặc token thì xin lại quyền
-    if (!currentUser || !currentToken) {
+    // Hàm kiểm tra token có phải JWT backend không (có zaloid trong payload)
+    function isBackendJWT(token: string | undefined): boolean {
+      if (!token) return false;
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return !!payload.zaloid;
+      } catch {
+        return false;
+      }
+    }
+
+    // Nếu thiếu user, token hoặc token không phải JWT backend thì xin lại quyền
+    if (!currentUser || !currentToken || !isBackendJWT(currentToken)) {
       try {
         await loginWithZalo();
         // Sau khi loginWithZalo, context sẽ cập nhật lại user và token
-        // Đợi context cập nhật (có thể cần delay ngắn)
         await new Promise((resolve) => setTimeout(resolve, 500));
         currentUser = user;
         currentToken = token;
+        // Kiểm tra lại token lần nữa
+        if (!currentToken || !isBackendJWT(currentToken)) {
+          setError("Không lấy được token xác thực từ backend. Vui lòng thử lại.");
+          setLoading(false);
+          return;
+        }
       } catch {
         setError("Bạn cần cấp quyền truy cập để cập nhật tài khoản.");
         setLoading(false);
@@ -81,7 +97,7 @@ export default function AccountUpdate() {
 
     // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
     let birthday = form.birthday;
-    const ddmmyyyy = birthday.match(/^\(\d{2}\)\/(\d{2})\/(\d{4})$/);
+    const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (ddmmyyyy) {
       const [_, day, month, year] = ddmmyyyy;
       birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
