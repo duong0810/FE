@@ -154,9 +154,11 @@ export const handleZaloLogin = async () => {
     if (result.success) {
       console.log('Đăng nhập thành công:', result.user);
       // result.user.phone sẽ có số điện thoại thực nếu user cho phép
-      const token = result.token;
+      const token = result.token; // Đây là JWT backend, phải dùng cho các API khác
       const user = result.user;
-      
+      // Log token để kiểm tra
+      console.log('Token backend trả về:', token);
+      // Trả về đúng token backend cho context FE lưu lại
       return { token, user };
     } else {
       throw new Error(result.message || 'Đăng nhập thất bại');
