@@ -34,9 +34,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Hàm kiểm tra token còn hạn không
+  function isValidJWT(token: string | null): boolean {
+    if (!token) return false;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (!payload.exp) return false;
+      return Date.now() < payload.exp * 1000;
+    } catch {
+      return false;
+    }
+  }
+
+  // Hàm logout
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+  };
+
+  // Khi mở app, lấy user/token từ localStorage nếu còn hợp lệ
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("token");
+    if (savedUser && savedToken && isValidJWT(savedToken)) {
+      setUser(JSON.parse(savedUser));
+      setToken(savedToken);
+      // Kiểm tra user còn tồn tại trên hệ thống không
+      fetch("https://be-sgv1.onrender.com/api/users/me", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${savedToken}`,
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.user) {
+            logout();
+          }
+        })
+        .catch(() => logout());
+    } else {
+      logout();
+    }
+  }, []);
+
   // Hàm cập nhật user từ bên ngoài (sau khi cập nhật profile)
   const updateUser = (newUser: User) => {
     setUser(newUser);
+    localStorage.setItem("user", JSON.stringify(newUser));
   };
 
   // Hàm này sẽ được gọi thủ công khi người dùng nhấn nút xin quyền
@@ -47,13 +95,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result) {
         setUser(result.user);
         setToken(result.token);
+        localStorage.setItem("user", JSON.stringify(result.user));
+        localStorage.setItem("token", result.token);
       } else {
         setUser(null);
         setToken(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     } catch (error) {
       setUser(null);
       setToken(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     } finally {
       setIsLoading(false);
     }
