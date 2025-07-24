@@ -149,9 +149,9 @@ export default function VoucherWarehouse() {
       toast.error('Vui lòng đăng nhập trước');
       return { success: false, error: 'Chưa đăng nhập' };
     }
-    // Lấy zaloId từ localStorage hoặc window
+    // Lấy zaloid từ localStorage hoặc window (ưu tiên đúng trường BE trả về)
     const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const zaloIdToSend = user.zaloId || window.zaloId || "";
+    const zaloIdToSend = user.zaloid || user.zaloId || window.zaloId || "";
     // Hàm gọi API claim voucher, có thể thử lại sau khi loginWithZalo
     const claimApi = async (tokenToUse: string) => {
       const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
