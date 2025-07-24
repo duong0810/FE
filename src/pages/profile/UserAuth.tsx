@@ -4,9 +4,15 @@ import { useAuth } from "@/context/AuthContext";
 function UserAuth() {
   const { user, loginWithZalo, isLoading } = useAuth();
   // Gọi hàm loginWithZalo từ context khi nhấn nút
+  const [error, setError] = React.useState("");
   const handleRequestPermission = async () => {
-    await loginWithZalo();
-    window.location.reload(); // reload lại để lấy quyền mới
+    setError("");
+    try {
+      await loginWithZalo();
+      // Sau khi loginWithZalo thành công, context sẽ tự cập nhật user
+    } catch (e) {
+      setError("Cấp quyền thất bại. Vui lòng thử lại.");
+    }
   };
 
   if (!user) {
@@ -20,6 +26,7 @@ function UserAuth() {
         >
           {isLoading ? 'Đang xử lý...' : 'Cấp quyền truy cập để tiếp tục'}
         </button>
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
     );
   }
