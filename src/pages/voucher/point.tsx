@@ -168,6 +168,9 @@ export default function Point() {
 
     setIsSpinning(true);
 
+    // Lấy zaloId từ localStorage hoặc window
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const zaloIdToSend = user.zaloId || window.zaloId || "";
     // Hàm gọi API quay, có thể thử lại sau khi loginWithZalo
     const spinApi = async (tokenToUse: string) => {
       const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
@@ -176,7 +179,7 @@ export default function Point() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${tokenToUse}`
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({ zaloId: zaloIdToSend })
       });
       return response;
     };
