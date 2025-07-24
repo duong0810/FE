@@ -21,41 +21,40 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  loginWithZalo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Tự động xác thực qua Zalo SDK khi app khởi động
-  useEffect(() => {
-    const fetchZaloAuth = async () => {
-      setIsLoading(true);
-      try {
-        const result = await handleZaloLogin();
-        if (result) {
-          setUser(result.user);
-          setToken(result.token);
-        } else {
-          setUser(null);
-          setToken(null);
-        }
-      } catch (error) {
+  // Hàm này sẽ được gọi thủ công khi người dùng nhấn nút xin quyền
+  const loginWithZalo = async () => {
+    setIsLoading(true);
+    try {
+      const result = await handleZaloLogin();
+      if (result) {
+        setUser(result.user);
+        setToken(result.token);
+      } else {
         setUser(null);
         setToken(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
-    fetchZaloAuth();
-  }, []);
+    } catch (error) {
+      setUser(null);
+      setToken(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading }}>
+    <AuthContext.Provider value={{ user, token, isLoading, loginWithZalo }}>
       {children}
     </AuthContext.Provider>
   );

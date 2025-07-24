@@ -1,17 +1,12 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
-import { authorize } from "zmp-sdk/apis";
 
 function UserAuth() {
-  const { user } = useAuth();
-  // Hàm gọi lại popup xin quyền
+  const { user, loginWithZalo, isLoading } = useAuth();
+  // Gọi hàm loginWithZalo từ context khi nhấn nút
   const handleRequestPermission = async () => {
-    try {
-      await authorize({ scopes: ["scope.userInfo", "scope.userPhonenumber"] });
-      window.location.reload(); // reload lại để lấy quyền mới
-    } catch (e) {
-      // Có thể show toast hoặc log lỗi nếu cần
-    }
+    await loginWithZalo();
+    window.location.reload(); // reload lại để lấy quyền mới
   };
 
   if (!user) {
@@ -21,8 +16,9 @@ function UserAuth() {
         <button
           onClick={handleRequestPermission}
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          disabled={isLoading}
         >
-          Cấp quyền truy cập để tiếp tục 
+          {isLoading ? 'Đang xử lý...' : 'Cấp quyền truy cập để tiếp tục'}
         </button>
       </div>
     );
