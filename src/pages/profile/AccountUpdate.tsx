@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-const { user, token, loginWithZalo } = useAuth();
 
 export default function AccountUpdate() {
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, loginWithZalo } = useAuth();
+
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
     if (!dateStr) return "";
