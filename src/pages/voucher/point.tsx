@@ -160,7 +160,7 @@ export default function Point() {
 
   const handleSpinClick = async () => {
     if (!token) {
-      alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+      ("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
       return;
     }
     if (isSpinning || wheelVouchers.length === 0) return;
@@ -180,7 +180,7 @@ export default function Point() {
 
       if (!response.ok) {
         const errData = await response.json();
-        alert(errData.error || "Bạn đã hết lượt quay!");
+        (errData.error || "Bạn đã hết lượt quay!");
         setIsSpinning(false);
         return;
       }

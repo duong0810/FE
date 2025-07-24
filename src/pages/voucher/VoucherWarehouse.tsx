@@ -145,7 +145,7 @@ export default function VoucherWarehouse() {
   // Hàm claim voucher mới
   const claimVoucher = async (voucherId: string) => {
     if (!token) {
-      alert('Vui lòng đăng nhập trước');
+      ('Vui lòng đăng nhập trước');
       return { success: false, error: 'Chưa đăng nhập' };
     }
     const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {

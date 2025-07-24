@@ -170,7 +170,7 @@ export const handleZaloLogin = async () => {
       stack: error instanceof Error ? error.stack : undefined
     });
     
-    alert('Đăng nhập thất bại: ' + errorMessage);
+    ('Đăng nhập thất bại: ' + errorMessage);
     return null;
   }
 };

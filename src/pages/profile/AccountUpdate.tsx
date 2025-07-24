@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+const { user, token, loginWithZalo } = useAuth();
 
 export default function AccountUpdate() {
   const navigate = useNavigate();
@@ -49,29 +50,52 @@ export default function AccountUpdate() {
     setLoading(true);
     setError("");
     setSuccess(false);
-    try {
-      // Luôn lấy token từ context
-      const authToken = token;
-      // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
-      let birthday = form.birthday;
-      const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (ddmmyyyy) {
-        const [_, day, month, year] = ddmmyyyy;
-        birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+
+    let currentUser = user;
+    let currentToken = token;
+
+    // Nếu thiếu user hoặc token thì xin lại quyền
+    if (!currentUser || !currentToken) {
+      try {
+        await loginWithZalo();
+        // Sau khi loginWithZalo, context sẽ cập nhật lại user và token
+        // Đợi context cập nhật (có thể cần delay ngắn)
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        currentUser = user;
+        currentToken = token;
+      } catch {
+        setError("Bạn cần cấp quyền truy cập để cập nhật tài khoản.");
+        setLoading(false);
+        return;
       }
-      const body = { ...form, birthday };
+    }
+
+    if (!currentUser || !currentToken) {
+      setError("Không thể lấy thông tin user hoặc token. Vui lòng thử lại.");
+      setLoading(false);
+      return;
+    }
+
+    // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
+    let birthday = form.birthday;
+    const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (ddmmyyyy) {
+      const [_, day, month, year] = ddmmyyyy;
+      birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    const body = { ...form, birthday };
+    try {
       const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Sau khi cập nhật thành công, chuyển về trang tài khoản và reload lại user context
       setTimeout(() => navigate("/account", { replace: true }), 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
