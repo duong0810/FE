@@ -168,10 +168,7 @@ export default function Point() {
 
     setIsSpinning(true);
 
-    // Lấy zaloid từ localStorage hoặc window (ưu tiên đúng trường BE trả về)
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const zaloIdToSend = user.zaloid || user.zaloId || window.zaloId || "";
-    // Hàm gọi API quay, có thể thử lại sau khi loginWithZalo
+    // Hàm gọi API quay, chỉ gửi token, không gửi zaloid/zaloId trong body
     const spinApi = async (tokenToUse: string) => {
       const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
@@ -179,7 +176,7 @@ export default function Point() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${tokenToUse}`
         },
-        body: JSON.stringify({ zaloId: zaloIdToSend })
+        body: JSON.stringify({})
       });
       return response;
     };
@@ -191,7 +188,7 @@ export default function Point() {
         const errData = await response.json();
         if (errData.message && errData.message.includes("Thiếu thông tin user")) {
           await loginWithZalo();
-          // Lấy lại token mới từ context
+          // Lấy lại token mới nhất từ localStorage (sau loginWithZalo)
           currentToken = localStorage.getItem("token");
           if (!currentToken) throw new Error("Vui lòng đăng nhập lại!");
           response = await spinApi(currentToken);
