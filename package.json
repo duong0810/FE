@@ -35,6 +35,7 @@
     "react-custom-roulette": "^1.4.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
+    "react-pull-to-refresh": "^2.0.1",
     "react-router-dom": "^6.23.0",
     "react-toastify": "^11.0.5",
     "resize-observer-polyfill": "^1.5.1",
