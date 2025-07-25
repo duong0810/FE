@@ -158,6 +158,10 @@ export const handleZaloLogin = async () => {
       const user = result.user;
       // Log token để kiểm tra
       console.log('Token backend trả về:', token);
+      // Lưu JWT vào localStorage cho các API khác sử dụng
+      localStorage.setItem('token', token);
+      localStorage.setItem('zalo_token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       // Trả về đúng token backend cho context FE lưu lại
       return { token, user };
     } else {
