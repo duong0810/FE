@@ -173,7 +173,7 @@ export default function Point() {
     // Lấy JWT từ localStorage
     const jwt = localStorage.getItem('token');
     if (!jwt) {
-      alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+      ("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
       return;
     }
     if (isSpinning || wheelVouchers.length === 0) return;
@@ -196,7 +196,7 @@ export default function Point() {
       let response = await spinApi(jwt);
       if (!response.ok) {
         const errData = await response.json();
-        alert(errData.message || "Bạn đã hết lượt quay!");
+        (errData.message || "Bạn đã hết lượt quay!");
         setIsSpinning(false);
         return;
       }
