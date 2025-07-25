@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 
 
 // Định nghĩa kiểu dữ liệu cho voucher - sửa để cho phép undefined
@@ -23,7 +23,7 @@ type Voucher = {
 
 export default function Point() {
   // Lấy token và user từ context
-  const { token, user, loginWithZalo } = useAuth();
+  // const { token, user, loginWithZalo } = useAuth();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
@@ -42,19 +42,29 @@ export default function Point() {
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
 
-  // Lấy danh sách voucher của user (luôn gửi Authorization header nếu có token)
+  // Lấy JWT từ localStorage và gửi cho mọi API voucher
   useEffect(() => {
-    if (!token) return;
-    fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+    const fetchUserVouchers = async () => {
+      try {
+        const jwt = localStorage.getItem('token');
+        if (!jwt) {
+          setUserVouchers([]);
+          return;
+        }
+        const res = await fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`
+          }
+        });
+        const data = await res.json();
+        setUserVouchers(Array.isArray(data) ? data : data.data || []);
+      } catch {
+        setUserVouchers([]);
       }
-    })
-      .then(res => res.json())
-      .then(data => setUserVouchers(Array.isArray(data) ? data : data.data || []))
-      .catch(() => setUserVouchers([]));
-  }, [token, showModal]);
+    };
+    fetchUserVouchers();
+  }, [showModal]);
 
   useEffect(() => {
     const fetchBanner = async () => {
@@ -160,8 +170,9 @@ export default function Point() {
   
 
   const handleSpinClick = async () => {
-    let currentToken = token;
-    if (!currentToken) {
+    // Lấy JWT từ localStorage
+    const jwt = localStorage.getItem('token');
+    if (!jwt) {
       alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
       return;
     }
@@ -169,40 +180,25 @@ export default function Point() {
 
     setIsSpinning(true);
 
-    // Hàm gọi API quay, chỉ gửi token, không gửi zaloid/zaloId trong body
-    const spinApi = async (tokenToUse: string) => {
+    // Hàm gọi API quay, chỉ gửi JWT, không gửi zaloid/zaloId trong body
+    const spinApi = async (jwtToken: string) => {
       return fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${tokenToUse}`
+          Authorization: `Bearer ${jwtToken}`
         },
         body: JSON.stringify({})
       });
     };
 
     try {
-      let response = await spinApi(currentToken);
-      // Nếu lỗi thiếu thông tin user, thử login lại rồi gọi lại API
+      let response = await spinApi(jwt);
       if (!response.ok) {
         const errData = await response.json();
-        if (errData.message && errData.message.includes("Thiếu thông tin user")) {
-          await loginWithZalo();
-          // Lấy lại token mới nhất từ localStorage (sau loginWithZalo)
-          currentToken = localStorage.getItem("token");
-          if (!currentToken) throw new Error("Vui lòng đăng nhập lại!");
-          response = await spinApi(currentToken);
-          if (!response.ok) {
-            const errData2 = await response.json();
-            alert(errData2.message || "Bạn đã hết lượt quay!");
-            setIsSpinning(false);
-            return;
-          }
-        } else {
-          alert(errData.message || "Bạn đã hết lượt quay!");
-          setIsSpinning(false);
-          return;
-        }
+        alert(errData.message || "Bạn đã hết lượt quay!");
+        setIsSpinning(false);
+        return;
       }
 
       const data = await response.json();
@@ -211,9 +207,9 @@ export default function Point() {
       }
 
       let winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
-        v.VoucherID === data.voucher.VoucherID ||
-        v.VoucherID === data.voucher.voucherid ||
-        v.Code === data.voucher.Code ||
+        v.VoucherID === data.voucher.VoucherID || 
+        v.VoucherID === data.voucher.voucherid || 
+        v.Code === data.voucher.Code || 
         v.Code === data.voucher.code
       );
       if (winnerIndex === -1) {

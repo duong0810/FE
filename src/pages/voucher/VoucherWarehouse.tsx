@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from '@/context/AuthContext';
+// import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -26,7 +26,7 @@ type Voucher = {
 };
 
 export default function VoucherWarehouse() {
-  const { token, loginWithZalo } = useAuth();
+  // const { token, loginWithZalo } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -143,41 +143,31 @@ export default function VoucherWarehouse() {
   }, []);
 
   // Hàm claim voucher mới
+  // Hàm claim voucher mới: chỉ gửi JWT từ localStorage
   const claimVoucher = async (voucherId: string) => {
-    let currentToken = token;
-    if (!currentToken) {
-      toast.error('Vui lòng đăng nhập trước');
-      return { success: false, error: 'Chưa đăng nhập' };
-    }
-    // Hàm gọi API claim voucher, chỉ gửi token, không gửi zaloid/zaloId trong body
-    const claimApi = async (tokenToUse: string) => {
+    try {
+      const jwt = localStorage.getItem('token');
+      if (!jwt) {
+        toast.error('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!');
+        return { success: false, error: 'Không tìm thấy JWT đăng nhập' };
+      }
       const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokenToUse}`
+          'Authorization': `Bearer ${jwt}`
         },
         body: JSON.stringify({ voucherId })
       });
-      return response;
-    };
-    let response = await claimApi(currentToken);
-    if (!response.ok) {
-      const errData = await response.json();
-      if (errData.message && errData.message.includes('Thiếu thông tin user')) {
-        await loginWithZalo();
-        currentToken = localStorage.getItem('token');
-        if (!currentToken) return { success: false, error: 'Vui lòng đăng nhập lại!' };
-        response = await claimApi(currentToken);
-        if (!response.ok) {
-          const errData2 = await response.json();
-          return { success: false, error: errData2.message || 'Thu thập voucher thất bại!' };
-        }
-      } else {
+      if (!response.ok) {
+        const errData = await response.json();
         return { success: false, error: errData.message || 'Thu thập voucher thất bại!' };
       }
+      return response.json();
+    } catch (err) {
+      toast.error('Có lỗi khi thu thập voucher, vui lòng thử lại!');
+      return { success: false, error: 'Có lỗi khi thu thập voucher' };
     }
-    return response.json();
   };
 
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
