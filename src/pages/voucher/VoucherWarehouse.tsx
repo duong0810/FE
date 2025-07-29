@@ -206,6 +206,10 @@ export default function VoucherWarehouse() {
           navigate("/gift");
         }, 1000);
       } else if (res.error) {
+        if (res.error === 'Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!') {
+          // Đã toast ở claimVoucher, không toast lại nữa
+          return;
+        }
         toast.error(res.error || "Thu thập voucher thất bại!");
         if (res.status === 409) {
           console.log('409 conflict:', res);
