@@ -149,7 +149,7 @@ export default function VoucherWarehouse() {
       const jwt = localStorage.getItem('token');
       if (!jwt) {
         toast.error('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!');
-        return { success: false, error: 'Không tìm thấy JWT đăng nhập' };
+        // return { success: false, error: '' };
       }
       const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
         method: 'POST',
