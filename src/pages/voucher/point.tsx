@@ -199,7 +199,10 @@ export default function Point() {
       let response = await spinApi(jwt);
       if (!response.ok) {
         const errData = await response.json();
-        (errData.message || "Bạn đã hết lượt quay!");
+        const message = errData.message || "Bạn đã hết lượt quay!";
+        import('react-toastify').then(({ toast }) => {
+          toast.error(message);
+        });
         setIsSpinning(false);
         return;
       }
