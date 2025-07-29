@@ -173,7 +173,10 @@ export default function Point() {
     // Lấy JWT từ localStorage
     const jwt = localStorage.getItem('token');
     if (!jwt) {
-      ("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+      // Hiện thông báo lỗi khi chưa đăng nhập
+      import('react-toastify').then(({ toast }) => {
+        toast.error('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!');
+      });
       return;
     }
     if (isSpinning || wheelVouchers.length === 0) return;
