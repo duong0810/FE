@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { handleZaloLogin } from '@/services/zaloService';
+import { getSetting } from 'zmp-sdk/apis';
 
 interface User {
   id: number;
@@ -70,9 +71,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       })
         .then(res => res.json())
-        .then(data => {
+        .then(async data => {
           if (!data.success || !data.user) {
             logout();
+          } else {
+            // Kiểm tra quyền Zalo
+            try {
+              const setting = await getSetting();
+              if (
+                !setting.authSetting?.["scope.userInfo"] ||
+                !setting.authSetting?.["scope.userPhonenumber"]
+              ) {
+                logout();
+              }
+            } catch {
+              logout();
+            }
           }
         })
         .catch(() => logout());
