@@ -91,17 +91,28 @@ export default function VoucherPage() {
         }
         const now = new Date().getTime();
         const validVouchers = (list as any[])
-          .map((v: any) => ({
-            ...v,
-            Id: v.voucherid || v.Id || v.code || v.Code || v.VoucherCode || "",
-            Code: v.code || v.Code || v.VoucherCode || "",
-            Discount: v.discount ? parseFloat(v.discount) : v.Discount,
-            ExpiryDate: v.expirydate || v.ExpiryDate,
-            Description: v.description || v.Description || "Không có mô tả",
-            Name: v.name || v.Name || v.code || "Voucher",
-            image: v.image || v.imageurl,
-            isNew: !!(v.collectedAt && now - v.collectedAt < 2 * 60 * 1000),
-          }))
+          .map((v: any) => {
+            // Convert collectedAt về số mili giây nếu là chuỗi
+            let collectedAt: number | undefined = undefined;
+            if (v.collectedAt) {
+              collectedAt =
+                typeof v.collectedAt === "number"
+                  ? v.collectedAt
+                  : new Date(v.collectedAt).getTime();
+            }
+            return {
+              ...v,
+              Id: v.voucherid || v.Id || v.code || v.Code || v.VoucherCode || "",
+              Code: v.code || v.Code || v.VoucherCode || "",
+              Discount: v.discount ? parseFloat(v.discount) : v.Discount,
+              ExpiryDate: v.expirydate || v.ExpiryDate,
+              Description: v.description || v.Description || "Không có mô tả",
+              Name: v.name || v.Name || v.code || "Voucher",
+              image: v.image || v.imageurl,
+              collectedAt,
+              isNew: !!(collectedAt && now - collectedAt < 2 * 60 * 1000),
+            };
+          })
           .filter((v: Voucher) => {
             const dateStr = v.ExpiryDate || v.expirydate || v.expiryDate;
             return !dateStr || (parseVNDate(dateStr)?.getTime() ?? 0) >= now;
