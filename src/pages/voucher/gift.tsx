@@ -61,6 +61,7 @@ export default function VoucherPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const { token } = useAuth();
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // Lấy voucher đã claim từ backend, chỉ gửi Authorization header
@@ -140,11 +141,16 @@ export default function VoucherPage() {
           <button className="px-4 py-2 text-blue-500 border-b-2 border-blue-500">
             Đang diễn ra
           </button>
-          <button className="px-4 py-2 text-gray-500">Sắp diễn ra</button>
+          {/* <button className="px-4 py-2 text-gray-500">Sắp diễn ra</button> */}
         </div>
       </div>
 
       {/* Thanh tìm kiếm */}
+      {showSuccess && (
+        <div className="mb-2 text-green-600 font-bold text-center">
+          Đã áp dụng thành công!
+        </div>
+      )}
       <div className="flex items-center gap-2 mb-4">
         <input
           type="text"
@@ -159,6 +165,12 @@ export default function VoucherPage() {
               ? "bg-green-500 text-white hover:bg-green-600"
               : "bg-gray-300 text-gray-500"}`}
           disabled={!isValidCode}
+          onClick={() => {
+            if (isValidCode) {
+              setShowSuccess(true);
+              setTimeout(() => setShowSuccess(false), 2000);
+            }
+          }}
         >
           Áp dụng
         </button>
