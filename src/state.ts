@@ -85,7 +85,7 @@ export const productsState = atom(async () => {
   try {
     console.log('🚀 Fetching products from API...');
     
-
+    // FIX: Use correct API URL (port 3000)
     const response = await fetch('https://be-sgv1.onrender.com/api/products');
     
     if (!response.ok) {

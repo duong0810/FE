@@ -3,7 +3,7 @@ import { MutableRefObject, useLayoutEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { UIMatch, useMatches } from "react-router-dom";
 import { cartState, cartTotalState } from "@/state";
-import { Cart, CartItem, Product, SelectedOptions } from "types";
+import { Cart, CartItem, Product, SelectedOptions } from "@/types";
 import { getDefaultOptions, isIdentical } from "@/utils/cart";
 import { getConfig } from "@/utils/template";
 import { openChat, purchase } from "zmp-sdk";
