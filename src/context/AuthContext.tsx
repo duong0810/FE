@@ -1,193 +1,129 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { handleZaloLogin } from '@/services/zaloService';
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+interface User {
+  id: number;
+  zaloid: string;
+  fullname?: string;
+  fullName?: string;
+  gender?: string;
+  sex?: string;
+  birthday?: string;
+  phone?: string;
+  phonenumber?: string;
+  address?: string;
+  avatar?: string;
+  role?: string;
+  [key: string]: any;
+}
 
-export default function AccountUpdate() {
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  loginWithZalo: () => Promise<void>;
+  updateUser: (user: User) => void;
+}
 
-  const navigate = useNavigate();
-  const { user, token, loginWithZalo, updateUser } = useAuth();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
-  function toDDMMYYYY(dateStr: string) {
-    if (!dateStr) return "";
-    const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (isoMatch) return `${isoMatch[3]}/${isoMatch[2]}/${isoMatch[1]}`;
-    const ymd = dateStr.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-    if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
-    const ddmmyyyy = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (ddmmyyyy) return dateStr;
-    return dateStr;
-  }
-  const [form, setForm] = useState({
-    fullname: user?.fullname || user?.fullName || "",
-    gender: user?.gender || user?.sex || "",
-    birthday: toDDMMYYYY(user?.birthday || ""),
-    phone: user?.phone || user?.phonenumber || "",
-    address: user?.address || "",
-  });
 
-  // Xử lý nhập ngày sinh dạng dd/mm/yyyy, tự nhảy dấu /
-  const handleBirthdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/[^0-9]/g, "");
-    if (value.length > 8) value = value.slice(0, 8);
-    let formatted = value;
-    if (value.length > 4) {
-      formatted = value.slice(0, 2) + "/" + value.slice(2, 4) + "/" + value.slice(4);
-    } else if (value.length > 2) {
-      formatted = value.slice(0, 2) + "/" + value.slice(2);
-    }
-    setForm({ ...form, birthday: formatted });
-  };
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess(false);
-
-    let currentUser = user;
-    let currentToken = token;
-
-    // Hàm kiểm tra token có phải JWT backend không (có zaloid trong payload)
-    function isBackendJWT(token: string | undefined): boolean {
-      if (!token) return false;
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return !!payload.zaloid;
-      } catch {
-        return false;
-      }
-    }
-
-    // Nếu thiếu user, token hoặc token không phải JWT backend thì xin lại quyền
-    if (!currentUser || !currentToken || !isBackendJWT(currentToken)) {
-      try {
-        await loginWithZalo();
-        // Sau khi loginWithZalo, context sẽ cập nhật lại user và token
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        currentUser = user;
-        currentToken = token;
-        // Kiểm tra lại token lần nữa
-        if (!currentToken || !isBackendJWT(currentToken)) {
-          setError("Không lấy được token xác thực từ backend. Vui lòng thử lại.");
-          setLoading(false);
-          return;
-        }
-      } catch {
-        setError("Bạn cần cấp quyền truy cập để cập nhật tài khoản.");
-        setLoading(false);
-        return;
-      }
-    }
-
-    if (!currentUser || !currentToken) {
-      setError("Không thể lấy thông tin user hoặc token. Vui lòng thử lại.");
-      setLoading(false);
-      return;
-    }
-
-    // Log token trước khi gửi request
-    console.log("Token FE gửi lên backend:", currentToken);
-
-    // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
-    let birthday = form.birthday;
-    const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (ddmmyyyy) {
-      const [_, day, month, year] = ddmmyyyy;
-      birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    }
-    const body = { ...form, birthday };
+  // Hàm kiểm tra token còn hạn không
+  function isValidJWT(token: string | null): boolean {
+    if (!token) return false;
     try {
-      const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
-        method: "PUT",
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (!payload.exp) return false;
+      return Date.now() < payload.exp * 1000;
+    } catch {
+      return false;
+    }
+  }
+
+  // Hàm logout
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+  };
+
+  // Khi mở app, lấy user/token từ localStorage nếu còn hợp lệ
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    const savedToken = localStorage.getItem("token");
+    if (savedUser && savedToken && isValidJWT(savedToken)) {
+      setUser(JSON.parse(savedUser));
+      setToken(savedToken);
+      // Kiểm tra user còn tồn tại trên hệ thống không
+      fetch("https://be-sgv1.onrender.com/api/users/me", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${currentToken}`,
+          Authorization: `Bearer ${savedToken}`,
         },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
-      setSuccess(true);
-      // Sau khi cập nhật thành công, lấy lại thông tin user mới nhất và cập nhật vào context
-      try {
-        const profileRes = await fetch("https://be-sgv1.onrender.com/api/users/me", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${currentToken}`,
-          },
-        });
-        const profileData = await profileRes.json();
-        if (profileData.success && profileData.user) {
-          updateUser(profileData.user);
-        }
-      } catch {}
-      setTimeout(() => {
-        navigate("/account", { replace: true });
-      }, 1000);
-    } catch (err: any) {
-      setError(err.message || "Có lỗi xảy ra");
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.user) {
+            logout();
+          }
+        })
+        .catch(() => logout());
+    } else {
+      logout();
+    }
+  }, []);
+
+  // Hàm cập nhật user từ bên ngoài (sau khi cập nhật profile)
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+    localStorage.setItem("user", JSON.stringify(newUser));
+  };
+
+  // Hàm này sẽ được gọi thủ công khi người dùng nhấn nút xin quyền
+  const loginWithZalo = async () => {
+    setIsLoading(true);
+    try {
+      const result = await handleZaloLogin();
+      if (result) {
+        setUser(result.user);
+        setToken(result.token);
+        localStorage.setItem("user", JSON.stringify(result.user));
+        localStorage.setItem("token", result.token);
+      } else {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
+    } catch (error) {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow p-4 mt-4">
-      <h2 className="text-lg font-bold mb-4">Cập nhật tài khoản</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-gray-500 mb-1">Họ tên</label>
-          <input name="fullname" value={form.fullname} onChange={handleChange} className="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label className="block text-gray-500 mb-1">Giới tính</label>
-          <select name="gender" value={form.gender} onChange={handleChange} className="w-full border rounded px-3 py-2">
-            <option value="">--</option>
-            <option value="Nam">Nam</option>
-            <option value="Nữ">Nữ</option>
-            <option value="Khác">Khác</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-gray-500 mb-1">Ngày sinh</label>
-          <input
-            name="birthday"
-            value={form.birthday}
-            onChange={handleBirthdayChange}
-            className="w-full border rounded px-3 py-2"
-            placeholder="dd/mm/yyyy"
-            maxLength={10}
-            inputMode="numeric"
-            pattern="\d{2}/\d{2}/\d{4}"
-          />
-        </div>
-        <div>
-          <label className="block text-gray-500 mb-1">Số điện thoại</label>
-          <input name="phone" value={form.phone} onChange={handleChange} className="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label className="block text-gray-500 mb-1">Địa chỉ</label>
-          <input name="address" value={form.address} onChange={handleChange} className="w-full border rounded px-3 py-2" />
-        </div>
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-        {success && <div className="text-green-600 text-sm">Cập nhật thành công!</div>}
-        <div className="flex gap-2">
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-bold" disabled={loading}>
-            {loading ? "Đang lưu..." : "Lưu"}
-          </button>
-          <button type="button" className="bg-gray-200 px-4 py-2 rounded" onClick={() => navigate("/account")}>Huỷ</button>
-        </div>
-      </form>
-    </div>
+    <AuthContext.Provider value={{ user, token, isLoading, loginWithZalo, updateUser }}>
+      {children}
+    </AuthContext.Provider>
   );
-}
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
