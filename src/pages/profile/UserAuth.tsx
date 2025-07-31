@@ -1,20 +1,35 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 
-import { useNavigate } from "react-router-dom";
 function UserAuth() {
-  const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
-
-
-  // Chỉ chuyển hướng sang /login nếu KHÔNG phải đang ở trang chủ ("/")
-  React.useEffect(() => {
-    if (!user && window.location.hash !== "#/login") {
-      navigate("/login");
+  const { user, loginWithZalo, isLoading } = useAuth();
+  // Gọi hàm loginWithZalo từ context khi nhấn nút
+  const [error, setError] = React.useState("");
+  const handleRequestPermission = async () => {
+    setError("");
+    try {
+      await loginWithZalo();
+      // Sau khi loginWithZalo thành công, context sẽ tự cập nhật user
+    } catch (e) {
+      setError("Cấp quyền thất bại. Vui lòng thử lại.");
     }
-  }, [user, navigate]);
+  };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="bg-white rounded-lg p-4 shadow-sm text-center">
+        <p>Vui lòng truy cập qua Zalo Mini App để sử dụng chức năng này.</p>
+        <button
+          onClick={handleRequestPermission}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Đang xử lý...' : 'Cấp quyền truy cập để tiếp tục'}
+        </button>
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm">
@@ -38,10 +53,8 @@ function UserAuth() {
               : 'Chưa có số điện thoại'}
           </p>
         </div>
-        {/* Đăng xuất đã bị loại bỏ theo chuẩn Zalo Mini App */}
       </div>
     </div>
-
   );
 }
 

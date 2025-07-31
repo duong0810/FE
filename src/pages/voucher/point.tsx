@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+// import { useAuth } from '@/context/AuthContext';
 
 
 // Định nghĩa kiểu dữ liệu cho voucher - sửa để cho phép undefined
@@ -19,17 +20,14 @@ type Voucher = {
   ExpiryDate?: string; // ✅ Cho phép undefined
 };
 
-export default function Point() {
-  // Đồng bộ lấy zaloId giống VoucherWarehouse
-  // Lấy token từ localStorage (ưu tiên key 'zalo_token' nếu có, fallback sang user.token)
-  const rawUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const token = localStorage.getItem("zalo_token") || rawUser?.token || rawUser?.accessToken || "";
-  const zaloId = rawUser.zaloId || rawUser.zaloID || rawUser.zaloid || rawUser.id || "";
-  const user = { ...rawUser, zaloId };
 
+export default function Point() {
+  // Lấy token và user từ context
+  // const { token, user, loginWithZalo } = useAuth();
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wheelVouchers, setWheelVouchers] = useState<Voucher[]>([]);
+  const [numSegments, setNumSegments] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showConfetti, setShowConfetti] = useState(false);
@@ -43,37 +41,30 @@ export default function Point() {
     header3: ""
   });
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
-  const [numSegments, setNumSegments] = useState<number>(8); // Số ô vòng quay động
 
-  // Lấy danh sách voucher của user (chỉ gửi Authorization header, không gửi zaloId)
+  // Lấy JWT từ localStorage và gửi cho mọi API voucher
   useEffect(() => {
-    if (!token) return;
-    fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then(res => res.json())
-      .then(data => setUserVouchers(Array.isArray(data) ? data : data.data || []))
-      .catch(() => setUserVouchers([]));
-  }, [token, showModal]);
-
-  // Lấy số ô vòng quay động từ API
-  useEffect(() => {
-    const fetchWheelConfig = async () => {
+    const fetchUserVouchers = async () => {
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
-        if (!res.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
-        const response = await res.json();
-        if (response && typeof response.num_segments === "number") {
-          setNumSegments(response.num_segments);
+        const jwt = localStorage.getItem('token');
+        if (!jwt) {
+          setUserVouchers([]);
+          return;
         }
-      } catch (error) {
-        setNumSegments(8); // fallback mặc định
+        const res = await fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jwt}`
+          }
+        });
+        const data = await res.json();
+        setUserVouchers(Array.isArray(data) ? data : data.data || []);
+      } catch {
+        setUserVouchers([]);
       }
     };
-    fetchWheelConfig();
-  }, []);
+    fetchUserVouchers();
+  }, [showModal]);
 
   useEffect(() => {
     const fetchBanner = async () => {
@@ -81,6 +72,8 @@ export default function Point() {
         const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/banner-headers");
         if (!res.ok) throw new Error("Lỗi khi lấy banner");
         const response = await res.json();
+        console.log("Banner response:", response);
+        
         const bannerData = response.data || response;
         setBanner({
           header1: bannerData.header1 || "CHÚC MỪNG NĂM MỚI",
@@ -88,6 +81,7 @@ export default function Point() {
           header3: bannerData.header3 || "2025 - NĂM RỒNG VÀNG"
         });
       } catch (error) {
+        console.error("Lỗi fetch banner:", error);
         setBanner({
           header1: "CHÚC MỪNG NĂM MỚI",
           header2: "VÒNG QUAY MAY MẮN",
@@ -95,13 +89,23 @@ export default function Point() {
         });
       }
     };
+    
     fetchBanner();
   }, []);
   
   useEffect(() => {
-    const fetchVouchers = async () => {
+    const fetchConfigAndVouchers = async () => {
       setLoading(true);
       try {
+        // 1. Gọi API lấy số lượng ô vòng quay
+        const configRes = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
+        if (!configRes.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
+        const configData = await configRes.json();
+        const num = configData.num_segments || configData.data?.num_segments;
+        setNumSegments(Number(num) || 0);
+        console.log("num_segments từ API:", num);
+
+        // 2. Gọi API lấy danh sách voucher
         const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
@@ -113,7 +117,7 @@ export default function Point() {
           vouchers = data.data || data.vouchers || [];
         }
 
-        // ✅ Sửa mapping với fallback values
+        // Sửa mapping với fallback values
         vouchers = vouchers.map(v => ({
           ...v,
           VoucherID: v.VoucherID || v.voucherid,
@@ -123,18 +127,27 @@ export default function Point() {
           image: v.Image || v.image,
         }));
 
-        
-        console.log("wheelVouchers:", vouchers);
+        // Nếu số lượng voucher khác numSegments, cắt/gộp cho đúng số ô
+        if (num && vouchers.length > num) {
+          vouchers = vouchers.slice(0, num);
+        } else if (num && vouchers.length < num) {
+          // Nếu thiếu, thêm voucher trống
+          for (let i = vouchers.length; i < num; i++) {
+            vouchers.push({ Id: 1000 + i, description: "Trống", probability: 0 });
+          }
+        }
+
         setWheelVouchers(vouchers);
         setError("");
       } catch (err: any) {
         setError(err.message || "Lỗi không xác định");
         setWheelVouchers([]);
+        setNumSegments(0);
       } finally {
         setLoading(false);
       }
     };
-    fetchVouchers();
+    fetchConfigAndVouchers();
   }, []);
   // 👇 THÊM ĐOẠN NÀY - useEffect cho phím Enter
   useEffect(() => {
@@ -157,28 +170,39 @@ export default function Point() {
   
 
   const handleSpinClick = async () => {
-    if (!token) {
-      alert("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!");
+    // Lấy JWT từ localStorage
+    const jwt = localStorage.getItem('token');
+    if (!jwt) {
+      // Hiện thông báo lỗi khi chưa đăng nhập
+      import('react-toastify').then(({ toast }) => {
+        toast.error('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!');
+      });
       return;
     }
     if (isSpinning || wheelVouchers.length === 0) return;
 
     setIsSpinning(true);
 
-    try {
-      // Gọi API quay, chỉ gửi Authorization header, không gửi zaloId trong body
-      const response = await fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
+    // Hàm gọi API quay, chỉ gửi JWT, không gửi zaloid/zaloId trong body
+    const spinApi = async (jwtToken: string) => {
+      return fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${jwtToken}`
         },
-        body: JSON.stringify({}) // Không gửi zaloId
+        body: JSON.stringify({})
       });
+    };
 
+    try {
+      let response = await spinApi(jwt);
       if (!response.ok) {
         const errData = await response.json();
-        alert(errData.error || "Bạn đã hết lượt quay!");
+        const message = errData.message || "Bạn đã hết lượt quay!";
+        import('react-toastify').then(({ toast }) => {
+          toast.error(message);
+        });
         setIsSpinning(false);
         return;
       }
@@ -189,9 +213,9 @@ export default function Point() {
       }
 
       let winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
-        v.VoucherID === data.voucher.VoucherID ||
-        v.VoucherID === data.voucher.voucherid ||
-        v.Code === data.voucher.Code ||
+        v.VoucherID === data.voucher.VoucherID || 
+        v.VoucherID === data.voucher.voucherid || 
+        v.Code === data.voucher.Code || 
         v.Code === data.voucher.code
       );
       if (winnerIndex === -1) {
@@ -222,28 +246,6 @@ export default function Point() {
         setWonWheel(wonDescription);
         setShowConfetti(true);
         setShowModal(true);
-        // FE: Gọi API lưu voucher cho user
-        // if (token && data.voucher) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       Authorization: `Bearer ${token}`
-        //     },
-        //     body: JSON.stringify({
-        //       voucherId: String(data.voucher.VoucherID || data.voucher.voucherid)
-        //     })
-        //   })
-        //     .then(res => res.json())
-        //     .then(result => {
-        //       if (!result.success) {
-        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
-        //       }
-        //     })
-        //     .catch(() => {
-        //       alert("Lỗi kết nối server khi lưu voucher!");
-        //     });
-        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
@@ -276,28 +278,6 @@ export default function Point() {
         setWonWheel(wheelVouchers[winnerIndex]?.description || "Voucher");
         setShowConfetti(true);
         setShowModal(true);
-        // Gọi API lưu voucher cho user, chỉ gửi Authorization header và voucherId
-        // if (token && wheelVouchers[winnerIndex]) {
-        //   fetch("https://be-sgv1.onrender.com/api/vouchers/assign", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //       Authorization: `Bearer ${token}`
-        //     },
-        //     body: JSON.stringify({
-        //       voucherId: String(wheelVouchers[winnerIndex].VoucherID || wheelVouchers[winnerIndex].voucherid)
-        //     })
-        //   })
-        //     .then(res => res.json())
-        //     .then(result => {
-        //       if (!result.success) {
-        //         alert(result.error || "Có lỗi khi lưu voucher cho user!");
-        //       }
-        //     })
-        //     .catch(() => {
-        //       alert("Lỗi kết nối server khi lưu voucher!");
-        //     });
-        // }
         setRotation(0);
         setTimeout(() => setShowConfetti(false), 8000);
       }, 4000);
@@ -305,15 +285,14 @@ export default function Point() {
   };
 
   const renderWheelSegments = () => {
-    if (!Array.isArray(wheelVouchers) || wheelVouchers.length === 0) return null;
-    // Số ô vòng quay lấy từ numSegments, nếu voucher ít hơn thì lặp lại voucher cho đủ ô
+    // Sử dụng numSegments để render số ô động
+    const segments = wheelVouchers.slice(0, numSegments > 0 ? numSegments : wheelVouchers.length);
+    if (!Array.isArray(segments) || segments.length === 0) return null;
     const segmentColors = [
       "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1",
       "#FFF0F5", "#FFF5E1", "#FFF0F5", "#FFF5E1"
     ];
-    const segmentAngle = 360 / numSegments;
-    // Lặp lại voucher nếu số voucher < numSegments
-    const segments = Array.from({ length: numSegments }, (_, i) => wheelVouchers[i % wheelVouchers.length]);
+    const segmentAngle = 360 / segments.length;
 
     return segments.map((voucher: Voucher, index: number) => {
       const startAngle = -90 + index * segmentAngle;
@@ -382,8 +361,8 @@ export default function Point() {
               fontWeight="bold"
               fontFamily="serif"
             >
-              {voucher.description && voucher.description.length > 15
-                ? voucher.description.substring(0, 12) + "..."
+              {voucher.description && voucher.description.length > 15 
+                ? voucher.description.substring(0, 12) + "..." 
                 : voucher.description || "Voucher"}
             </text>
           </g>

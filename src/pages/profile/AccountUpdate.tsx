@@ -1,11 +1,13 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { useAuth } from "@/context/AuthContext";
 
 export default function AccountUpdate() {
+
   const navigate = useNavigate();
-  const { user, token, refreshUser } = useAuth();
+  const { user, token, loginWithZalo, updateUser } = useAuth();
+
   // Đảm bảo birthday luôn là dd/mm/yyyy khi hiển thị
   function toDDMMYYYY(dateStr: string) {
     if (!dateStr) return "";
@@ -50,31 +52,88 @@ export default function AccountUpdate() {
     setLoading(true);
     setError("");
     setSuccess(false);
-    try {
-      // Lấy token từ context
-      const authToken = token || localStorage.getItem("zalo_token") || (window as any).zalo_token || "";
-      // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
-      let birthday = form.birthday;
-      const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (ddmmyyyy) {
-        const [_, day, month, year] = ddmmyyyy;
-        birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+
+    let currentUser = user;
+    let currentToken = token;
+
+    // Hàm kiểm tra token có phải JWT backend không (có zaloid trong payload)
+    function isBackendJWT(token: string | undefined): boolean {
+      if (!token) return false;
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return !!payload.zaloid;
+      } catch {
+        return false;
       }
-      const body = { ...form, birthday };
+    }
+
+    // Nếu thiếu user, token hoặc token không phải JWT backend thì xin lại quyền
+    if (!currentUser || !currentToken || !isBackendJWT(currentToken)) {
+      try {
+        await loginWithZalo();
+        // Sau khi loginWithZalo, context sẽ cập nhật lại user và token
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        currentUser = user;
+        currentToken = token;
+        // Kiểm tra lại token lần nữa
+        if (!currentToken || !isBackendJWT(currentToken)) {
+          setError("Không lấy được token xác thực từ backend. Vui lòng thử lại.");
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setError("Bạn cần cấp quyền truy cập để cập nhật tài khoản.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!currentUser || !currentToken) {
+      setError("Không thể lấy thông tin user hoặc token. Vui lòng thử lại.");
+      setLoading(false);
+      return;
+    }
+
+    // Log token trước khi gửi request
+    console.log("Token FE gửi lên backend:", currentToken);
+
+    // Chuyển birthday từ dd/mm/yyyy sang yyyy-mm-dd trước khi gửi lên BE
+    let birthday = form.birthday;
+    const ddmmyyyy = birthday.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (ddmmyyyy) {
+      const [_, day, month, year] = ddmmyyyy;
+      birthday = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    const body = { ...form, birthday };
+    try {
       const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${currentToken}`,
         },
         body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Cập nhật thất bại");
       setSuccess(true);
-      // Gọi refreshUser để đồng bộ lại context ngay sau khi cập nhật
-      await refreshUser?.();
-      setTimeout(() => navigate("/account", { replace: true }), 1000);
+      // Sau khi cập nhật thành công, lấy lại thông tin user mới nhất và cập nhật vào context
+      try {
+        const profileRes = await fetch("https://be-sgv1.onrender.com/api/users/me", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentToken}`,
+          },
+        });
+        const profileData = await profileRes.json();
+        if (profileData.success && profileData.user) {
+          updateUser(profileData.user);
+        }
+      } catch {}
+      setTimeout(() => {
+        navigate("/account", { replace: true });
+      }, 1000);
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra");
     } finally {

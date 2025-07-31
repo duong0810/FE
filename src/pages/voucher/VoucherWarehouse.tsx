@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+// import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -25,6 +26,7 @@ type Voucher = {
 };
 
 export default function VoucherWarehouse() {
+  // const { token, loginWithZalo } = useAuth();
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -141,21 +143,31 @@ export default function VoucherWarehouse() {
   }, []);
 
   // Hàm claim voucher mới
+  // Hàm claim voucher mới: chỉ gửi JWT từ localStorage
   const claimVoucher = async (voucherId: string) => {
-    const token = localStorage.getItem('zalo_token');
-    if (!token) {
-      alert('Vui lòng đăng nhập trước');
-      return { success: false, error: 'Chưa đăng nhập' };
+    try {
+      const jwt = localStorage.getItem('token');
+      if (!jwt) {
+        toast.error('Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!');
+        return { success: false, error: 'Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!' }; 
+      }
+      const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`
+        },
+        body: JSON.stringify({ voucherId })
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        return { success: false, error: errData.message || 'Thu thập voucher thất bại!' };
+      }
+      return response.json();
+    } catch (err) {
+      toast.error('Có lỗi khi thu thập voucher, vui lòng thử lại!');
+      return { success: false, error: 'Có lỗi khi thu thập voucher' };
     }
-    const response = await fetch('https://be-sgv1.onrender.com/api/vouchers/claim', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ voucherId })
-    });
-    return response.json();
   };
 
   // Xử lý thu thập voucher: gọi BE để lưu voucher cho user
@@ -194,6 +206,10 @@ export default function VoucherWarehouse() {
           navigate("/gift");
         }, 1000);
       } else if (res.error) {
+        if (res.error === 'Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!') {
+          // Đã toast ở claimVoucher, không toast lại nữa
+          return;
+        }
         toast.error(res.error || "Thu thập voucher thất bại!");
         if (res.status === 409) {
           console.log('409 conflict:', res);

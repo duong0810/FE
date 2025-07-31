@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 // Kiểu dữ liệu voucher
 type Voucher = {
@@ -59,25 +60,13 @@ const formatDate = (dateString?: string) => {
 export default function VoucherPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
-  const [debugInfo, setDebugInfo] = useState<string>("");
-
-
-  // Lấy token từ localStorage (ưu tiên key 'zalo_token'), không lấy zaloId, không lưu/lấy voucher ở localStorage
-  const token = localStorage.getItem('zalo_token') || (window as any).zalo_token || "";
+  const { token } = useAuth();
 
   useEffect(() => {
     // Lấy voucher đã claim từ backend, chỉ gửi Authorization header
     const fetchVouchers = async () => {
       try {
-        // Lấy user từ context hoặc localStorage
-        let userId = null;
-        try {
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          userId = user?.id || user?.userId || user?.zaloId || null;
-        } catch {}
-        // Nếu không có token hoặc userId thì báo lỗi
         if (!token) {
-          setDebugInfo('Bạn chưa đăng nhập hoặc thiếu thông tin user.');
           setSelectedVouchers([]);
           return;
         }
@@ -85,8 +74,8 @@ export default function VoucherPage() {
           `https://be-sgv1.onrender.com/api/vouchers/my-vouchers`,
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
             },
           }
         );
@@ -99,8 +88,6 @@ export default function VoucherPage() {
           list = data.data || data.vouchers || data.items || data.result || [];
           list = Array.isArray(list) ? list : [];
         }
-        console.log('API raw data:', data);
-        console.log('Voucher list after extract:', list);
         const now = new Date().getTime();
         const validVouchers = (list as any[])
           .map((v: any) => ({
@@ -118,12 +105,9 @@ export default function VoucherPage() {
             const dateStr = v.ExpiryDate || v.expirydate || v.expiryDate;
             return !dateStr || (parseVNDate(dateStr)?.getTime() ?? 0) >= now;
           });
-        console.log('Valid vouchers after mapping/filter:', validVouchers);
         setSelectedVouchers(validVouchers);
-        setDebugInfo(`Có ${validVouchers.length} voucher từ backend`);
       } catch (err) {
         setSelectedVouchers([]);
-        setDebugInfo("Không lấy được voucher từ backend");
       }
     };
 
