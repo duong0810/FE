@@ -12,7 +12,7 @@ import AccountInfo from "./pages/profile/AccountInfo";
 import AccountUpdate from "./pages/profile/AccountUpdate";
 import VoucherWarehouse from "./pages/voucher/VoucherWarehouse";
 import Point from "./pages/voucher/point";
-import Core from "./pages/voucher/core";
+// import Core from "./pages/voucher/core";
 const router = createHashRouter([
   {
     path: "/",
@@ -32,7 +32,7 @@ const router = createHashRouter([
       { path: "/account/update", element: <AccountUpdate />, handle: { title: "Cập nhật tài khoản" } },
       { path: "/voucher-warehouse", element: <VoucherWarehouse />, handle: { title: "kho voucher" } },
       { path: "/point", element: <Point />, handle: { title: "Vòng quay may mắn" } },
-      { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },
+      // { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },
     ],
   },
 ]);

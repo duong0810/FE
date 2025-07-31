@@ -18,7 +18,7 @@ export default function Layout() {
   const getCurrentPath = () => {
     const path = location.pathname;
     if (path === "/") return "home";
-    if (path === "/core") return "core";
+    // if (path === "/core") return "core";
     if (path === "/voucher-warehouse") return "warehouse";
     if (path === "/profile") return "profile";
     return "";
@@ -65,7 +65,7 @@ export default function Layout() {
               <span className="text-xs"> Trang chủ </span>
             </button>
 
-            <button
+            {/* <button
               onClick={() => navigate("/core")}
               className={`flex flex-col items-center ${
                 currentPath === "core" ? "text-blue-500" : "text-gray-500"
@@ -86,7 +86,7 @@ export default function Layout() {
                 />
               </svg>
               <span className="text-xs"> Tích điểm </span>
-            </button>
+            </button> */}
 
             <button
               onClick={() => navigate("/voucher-warehouse")}
