@@ -180,6 +180,11 @@ export default function VoucherPage() {
             if (isValidCode) {
               setShowSuccess(true);
               setTimeout(() => setShowSuccess(false), 2000);
+              // Ẩn voucher vừa áp dụng khỏi danh sách
+              setSelectedVouchers(prev =>
+                prev.filter(v => getVoucherCode(v) !== searchTerm)
+              );
+              setSearchTerm(""); // Xoá ô nhập sau khi áp dụng
             }
           }}
         >
@@ -290,13 +295,7 @@ export default function VoucherPage() {
                 {/* Nút áp dụng */}
                 <button
                   className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
-                  onClick={() => {
-                    setSearchTerm(code);
-                    // Ẩn voucher vừa áp dụng khỏi danh sách
-                    setSelectedVouchers(prev =>
-                      prev.filter(v => getVoucherCode(v) !== code)
-                    );
-                  }}
+                  onClick={() => setSearchTerm(code)}
                   disabled={!code}
                 >
                   Áp dụng
