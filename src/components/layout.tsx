@@ -12,6 +12,9 @@ export default function Layout() {
     if (!token && location.pathname !== "/login") {
       navigate("/login", { replace: true });
     }
+    console.log("Current href:", window.location.href);
+    console.log("Current hash:", window.location.hash);
+    console.log("Current pathname:", location.pathname);
   }, [location.pathname, navigate]);
 
   // Xác định trang hiện tại để đánh dấu menu active

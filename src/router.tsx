@@ -33,6 +33,8 @@ const router = createHashRouter([
       { path: "/voucher-warehouse", element: <VoucherWarehouse />, handle: { title: "kho voucher" } },
       { path: "/point", element: <Point />, handle: { title: "Vòng quay may mắn" } },
       // { path: "/core", element: <Core />, handle: { title: "Tích điểm" } },
+      // Fallback route: chuyển về trang chủ nếu không khớp bất kỳ route nào
+      { path: "*", element: <HomePage /> },
     ],
   },
 ]);
