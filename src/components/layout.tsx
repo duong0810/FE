@@ -8,10 +8,10 @@ export default function Layout() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const token = localStorage.getItem("zalo_token") || (window as any).zalo_token;
-    if (!token && location.pathname !== "/login") {
-      navigate("/login", { replace: true });
-    }
+    // const token = localStorage.getItem("zalo_token") || (window as any).zalo_token;
+    // if (!token && location.pathname !== "/login") {
+    //   navigate("/login", { replace: true });
+    // }
     console.log("Current href:", window.location.href);
     console.log("Current hash:", window.location.hash);
     console.log("Current pathname:", location.pathname);
