@@ -42,15 +42,14 @@ export default function Layout() {
         <ToastContainer />
 
       {/* Bottom Navigation */}
-      {location.pathname !== "/login" && (
-        <nav className="bg-white border-t border-gray-200">
-          <div className="flex justify-around px-4 py-3">
-            <button
-              onClick={() => navigate("/")}
-              className={`flex flex-col items-center ${
-                currentPath === "home" ? "text-blue-500" : "text-gray-500"
-              }`}
-            >
+      <nav className="bg-white border-t border-gray-200">
+        <div className="flex justify-around px-4 py-3">
+          <button
+            onClick={() => navigate("/")}
+            className={`flex flex-col items-center ${
+              currentPath === "home" ? "text-blue-500" : "text-gray-500"
+            }`}
+          >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -138,7 +137,7 @@ export default function Layout() {
             </button>
           </div>
         </nav>
-      )}
+      
     </div>
   );
 }
