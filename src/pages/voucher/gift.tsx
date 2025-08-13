@@ -220,7 +220,7 @@ export default function VoucherPage() {
                 }`}
               >
                 {/* Badge x2, x3,... */}
-                {voucher.count > 1 && (
+                {voucher.count > 0 && (
                   <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow z-10">
                     x{voucher.count}
                   </div>
