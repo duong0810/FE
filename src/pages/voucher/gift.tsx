@@ -18,6 +18,7 @@ type Voucher = {
   expirydate?: string;
   code?: string;
   VoucherCode?: string;
+  isused?: boolean; // 13/8
 };
 
 // Hàm parse ngày hỗ trợ cả ISO và dd/mm/yyyy
@@ -111,6 +112,7 @@ export default function VoucherPage() {
               image: v.image || v.imageurl,
               collectedAt,
               isNew: !!(collectedAt && now - collectedAt < 2 * 60 * 1000),
+              isused: v.isused ?? v.IsUsed ?? false, // 13/8
             };
           })
           .filter((v: Voucher) => {
@@ -211,9 +213,11 @@ export default function VoucherPage() {
           ).map((voucher: any) => {
             const code = getVoucherCode(voucher);
             return (
-              <div
+              <div  // 12/8
                 key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
-                className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
+                className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${
+                  voucher.isused ? "opacity-50 pointer-events-none" : ""
+                }`}
               >
                 {/* Badge x2, x3,... */}
                 {voucher.count > 1 && (
@@ -228,7 +232,16 @@ export default function VoucherPage() {
                     MỚI
                   </div>
                 )}
-                
+
+                {/* Nếu đã sử dụng, hiện chữ "Đã sử dụng" đè lên */}
+                {voucher.isused && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <span className="bg-gray-700 bg-opacity-70 text-white font-bold px-4 py-2 rounded-lg text-lg">
+                      Đã sử dụng
+                    </span>
+                  </div>
+                )}
+
                 {/* Icon voucher */}
                 <div className="flex justify-center mb-1">
                   <span className="text-lg">🎫</span>
@@ -293,14 +306,14 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Nút áp dụng */}
-                <button
-                  className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
-                  onClick={() => setSearchTerm(code)}
-                  disabled={!code}
-                >
-                  Áp dụng
-                </button>
-              </div>
+                  <button
+                    className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
+                    onClick={() => setSearchTerm(code)}
+                    disabled={!code || voucher.isused}
+                  >
+                    Áp dụng
+                  </button>
+                </div>
             );
           })}
         </div>
