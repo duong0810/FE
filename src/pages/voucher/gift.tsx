@@ -19,6 +19,7 @@ type Voucher = {
   code?: string;
   VoucherCode?: string;
   isused?: boolean; // 13/8
+  quantity?: number;
 };
 
 // Hàm parse ngày hỗ trợ cả ISO và dd/mm/yyyy
@@ -149,7 +150,7 @@ export default function VoucherPage() {
     <div className="p-4">
       {/* Header */}
       <div className="text-center mb-4">
-        <h1 className="text-lg font-bold">Chọn ưu đãi từ cửa hàng</h1>
+        <h1 className="text-lg font-bold">Ưu đãi từ cửa hàng</h1>
         <div className="flex justify-center mt-2">
           <button className="px-4 py-2 text-blue-500 border-b-2 border-blue-500">
             Đang diễn ra
@@ -164,7 +165,7 @@ export default function VoucherPage() {
           Đã áp dụng thành công!
         </div>
       )}
-      <div className="flex items-center gap-2 mb-4">
+      {/* <div className="flex items-center gap-2 mb-4">
         <input
           type="text"
           placeholder="Nhập mã ưu đãi tại đây"
@@ -192,37 +193,24 @@ export default function VoucherPage() {
         >
           Áp dụng
         </button>
-      </div>
+      </div> */}
       {selectedVouchers.length > 0 ? (
       <div className="grid grid-cols-2 sm:grid-cols-2 gap-5">
         {
-          // Group voucher theo Code (ưu tiên) hoặc Id
-          Object.values(
-            selectedVouchers.reduce((acc, voucher) => {
-              const code = getVoucherCode(voucher);
-              const key = code || voucher.Id;
-              if (!acc[key]) {
-                acc[key] = { ...voucher, count: 1 };
-              } else {
-                acc[key].count += 1;
-                // Nếu có voucher mới, giữ trạng thái isNew = true
-                if (voucher.isNew) acc[key].isNew = true;
-              }
-              return acc;
-            }, {} as Record<string, any>)
-          ).map((voucher: any) => {
+          // 13/08
+          selectedVouchers.map((voucher) => {
             const code = getVoucherCode(voucher);
             return (
-              <div  // 12/8
+              <div
                 key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
                 className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${
                   voucher.isused ? "opacity-50 pointer-events-none" : ""
                 }`}
               >
                 {/* Badge x2, x3,... */}
-                {voucher.count > 0 && (
+                {(voucher.quantity ?? 1) > 1 && (
                   <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow z-10">
-                    x{voucher.count}
+                    x{voucher.quantity ?? 1}
                   </div>
                 )}
 
@@ -306,13 +294,13 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Nút áp dụng */}
-                  <button
+                  {/* <button
                     className="mt-auto bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-2 rounded-lg font-bold shadow hover:from-yellow-500 hover:to-orange-600 transition text-sm w-full"
                     onClick={() => setSearchTerm(code)}
                     disabled={!code || voucher.isused}
                   >
                     Áp dụng
-                  </button>
+                  </button> */}
                 </div>
             );
           })}
