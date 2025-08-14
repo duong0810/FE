@@ -279,13 +279,13 @@ export default function VoucherPage() {
                   {(voucher.ExpiryDate ||
                     (voucher as any).expirydate ||
                     (voucher as any).expiryDate) ? (
-                    <p
-                      className="text-[10px] flex items-center gap-1 font-bold w-full justify-center"
-                      style={{ color: "#f59e42" }}
-                    >
-                      <span className="inline-block animate-spin" style={{ fontSize: 18 }}>
-                        ⏰
-                      </span>
+                    <p className="text-[10px] flex items-center gap-1 font-bold w-full justify-center" style={{ color: "#a50800ff" }}>
+                      <img
+                        src="/images/home/clock.gif"
+                        alt="Clock"
+                        style={{ width: 18, height: 18 }}
+                        className="inline-block"
+                      />
                       <span>
                         {formatDate(
                           voucher.ExpiryDate ||
