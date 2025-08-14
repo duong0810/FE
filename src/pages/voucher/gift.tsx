@@ -232,7 +232,11 @@ export default function VoucherPage() {
 
                 {/* Icon voucher */}
                 <div className="flex justify-center mb-1">
-                  <span className="text-lg">🎫</span>
+                  <img
+                    src="/images/home/voucher.webp"
+                    alt="Voucher"
+                    className="w-8 h-8 object-contain animate-shake"
+                  />
                 </div>
 
                 {/* Dòng 1: Discount (nếu có) hoặc Tên voucher, KHÔNG hiển thị mã voucher ở đây */}
@@ -252,8 +256,8 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Dòng 2: Mô tả (luôn giữ chỗ, luôn hiện) */}
-                <div className="min-h-[20px] flex items-center justify-center mb-1">
-                  <span className="text-xs font-bold text-blue-700 text-center w-full truncate">
+                <div className="flex items-center justify-center mb-1 min-h-[32px]">
+                  <span className="text-xs font-bold text-blue-700 text-center w-full break-words">
                     {voucher.Description || voucher.description || ""}
                   </span>
                 </div>
@@ -270,16 +274,16 @@ export default function VoucherPage() {
                   ) : null}
                 </div>
 
-                {/* Dòng 4: Ngày hết hạn */}
-                <div className="min-h-[18px] flex items-center mb-1">
+                {/* Dòng 4: Ngày hết hạn (luôn nằm dưới cùng) */}
+                <div className="flex items-center mb-1 min-h-[18px]">
                   {(voucher.ExpiryDate ||
                     (voucher as any).expirydate ||
                     (voucher as any).expiryDate) ? (
                     <p
-                      className="text-[10px] flex items-center gap-1 font-bold"
+                      className="text-[10px] flex items-center gap-1 font-bold w-full justify-center"
                       style={{ color: "#f59e42" }}
                     >
-                      <span className="inline-block" style={{ fontSize: 18 }}>
+                      <span className="inline-block animate-spin" style={{ fontSize: 18 }}>
                         ⏰
                       </span>
                       <span>
