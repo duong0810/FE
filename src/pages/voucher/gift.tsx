@@ -202,13 +202,10 @@ export default function VoucherPage() {
             const code = getVoucherCode(voucher);
             return (
               <div
-                className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
-                style={{
-                  backgroundImage: "url('/images/home/backgroundVoucher.webp')", // Đường dẫn ảnh đã nén
-                  backgroundSize: "cover", // hoặc "contain" nếu muốn toàn bộ ảnh hiển thị
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center"
-                }}
+                key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
+                className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${
+                  voucher.isused ? "opacity-50 pointer-events-none" : ""
+                }`}
               >
                 {/* Badge x2, x3,... */}
                 {(voucher.quantity ?? 1) > 1 && (
@@ -233,6 +230,11 @@ export default function VoucherPage() {
                   </div>
                 )}
 
+                {/* Icon voucher */}
+                <div className="flex justify-center mb-1">
+                  <span className="text-lg">🎫</span>
+                </div>
+
                 {/* Dòng 1: Discount (nếu có) hoặc Tên voucher, KHÔNG hiển thị mã voucher ở đây */}
                 <div className="h-6 flex items-center justify-center mb-1">
                   {((voucher.Discount ?? (voucher as any).discount) > 0) ? (
@@ -249,9 +251,9 @@ export default function VoucherPage() {
                   )}
                 </div>
 
-                {/* Dòng 2: Mô tả (cho phép xuống dòng) */}
+                {/* Dòng 2: Mô tả (luôn giữ chỗ, luôn hiện) */}
                 <div className="min-h-[20px] flex items-center justify-center mb-1">
-                  <span className="text-xs font-bold text-blue-700 text-center w-full break-words">
+                  <span className="text-xs font-bold text-blue-700 text-center w-full truncate">
                     {voucher.Description || voucher.description || ""}
                   </span>
                 </div>
@@ -269,15 +271,15 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Dòng 4: Ngày hết hạn */}
-                {(voucher.ExpiryDate ||
-                  (voucher as any).expirydate ||
-                  (voucher as any).expiryDate) && (
-                  <div className="min-h-[18px] flex items-center mb-1 mt-auto">
+                <div className="min-h-[18px] flex items-center mb-1">
+                  {(voucher.ExpiryDate ||
+                    (voucher as any).expirydate ||
+                    (voucher as any).expiryDate) ? (
                     <p
                       className="text-[10px] flex items-center gap-1 font-bold"
                       style={{ color: "#f59e42" }}
                     >
-                      <span className="inline-block animate-bounce" style={{ fontSize: 18 }}>
+                      <span className="inline-block" style={{ fontSize: 18 }}>
                         ⏰
                       </span>
                       <span>
@@ -288,8 +290,8 @@ export default function VoucherPage() {
                         )}
                       </span>
                     </p>
-                  </div>
-                )}
+                  ) : null}
+                </div>
 
                 {/* Nút áp dụng */}
                   {/* <button
