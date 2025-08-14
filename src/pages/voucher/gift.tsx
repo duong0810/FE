@@ -202,9 +202,13 @@ export default function VoucherPage() {
             const code = getVoucherCode(voucher);
             return (
               <div
-                key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
-                className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${voucher.isused ? "opacity-50 pointer-events-none" : ""}`}
-                style={{ background: "url('/images/home/backgroundVoucher.png') center/cover no-repeat" }} // Thêm background, đổi đường dẫn nếu cần
+                className="relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px]"
+                style={{
+                  backgroundImage: "url('/images/home/backgroundVoucher.webp')", // Đường dẫn ảnh đã nén
+                  backgroundSize: "cover", // hoặc "contain" nếu muốn toàn bộ ảnh hiển thị
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "center"
+                }}
               >
                 {/* Badge x2, x3,... */}
                 {(voucher.quantity ?? 1) > 1 && (
