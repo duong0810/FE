@@ -230,9 +230,12 @@ export default function VoucherPage() {
                   </div>
                 )}
 
-                {/* Icon voucher */}
                 <div className="flex justify-center mb-1">
-                  <span className="text-lg">🎫</span>
+                  <img
+                    src="/images/home/voucher.png" 
+                    alt="Voucher"
+                    className="w-8 h-8" // Tuỳ chỉnh kích thước theo ý muốn
+                  />
                 </div>
 
                 {/* Dòng 1: Discount (nếu có) hoặc Tên voucher, KHÔNG hiển thị mã voucher ở đây */}
