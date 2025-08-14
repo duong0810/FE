@@ -233,14 +233,6 @@ export default function VoucherPage() {
                   </div>
                 )}
 
-                <div className="flex justify-center mb-1">
-                  <img
-                    src="/images/home/voucher.png" 
-                    alt="Voucher"
-                    className="w-8 h-8" // Tuỳ chỉnh kích thước theo ý muốn
-                  />
-                </div>
-
                 {/* Dòng 1: Discount (nếu có) hoặc Tên voucher, KHÔNG hiển thị mã voucher ở đây */}
                 <div className="h-6 flex items-center justify-center mb-1">
                   {((voucher.Discount ?? (voucher as any).discount) > 0) ? (
