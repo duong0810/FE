@@ -203,9 +203,8 @@ export default function VoucherPage() {
             return (
               <div
                 key={voucher.uniqueId || `${voucher.Id}_${voucher.collectedAt || 0}`}
-                className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${
-                  voucher.isused ? "opacity-50 pointer-events-none" : ""
-                }`}
+                className={`relative bg-white border border-yellow-200 rounded-lg shadow p-2 flex flex-col gap-1 hover:shadow-lg transition-all duration-200 h-[200px] ${voucher.isused ? "opacity-50 pointer-events-none" : ""}`}
+                style={{ background: "url('/images/home/voucher-bg.png') center/cover no-repeat" }} // Thêm background, đổi đường dẫn nếu cần
               >
                 {/* Badge x2, x3,... */}
                 {(voucher.quantity ?? 1) > 1 && (
@@ -254,9 +253,9 @@ export default function VoucherPage() {
                   )}
                 </div>
 
-                {/* Dòng 2: Mô tả (luôn giữ chỗ, luôn hiện) */}
+                {/* Dòng 2: Mô tả (cho phép xuống dòng) */}
                 <div className="min-h-[20px] flex items-center justify-center mb-1">
-                  <span className="text-xs font-bold text-blue-700 text-center w-full truncate">
+                  <span className="text-xs font-bold text-blue-700 text-center w-full break-words">
                     {voucher.Description || voucher.description || ""}
                   </span>
                 </div>
@@ -274,15 +273,15 @@ export default function VoucherPage() {
                 </div>
 
                 {/* Dòng 4: Ngày hết hạn */}
-                <div className="min-h-[18px] flex items-center mb-1">
-                  {(voucher.ExpiryDate ||
-                    (voucher as any).expirydate ||
-                    (voucher as any).expiryDate) ? (
+                {(voucher.ExpiryDate ||
+                  (voucher as any).expirydate ||
+                  (voucher as any).expiryDate) && (
+                  <div className="min-h-[18px] flex items-center mb-1 mt-auto">
                     <p
                       className="text-[10px] flex items-center gap-1 font-bold"
                       style={{ color: "#f59e42" }}
                     >
-                      <span className="inline-block" style={{ fontSize: 18 }}>
+                      <span className="inline-block animate-bounce" style={{ fontSize: 18 }}>
                         ⏰
                       </span>
                       <span>
@@ -293,8 +292,8 @@ export default function VoucherPage() {
                         )}
                       </span>
                     </p>
-                  ) : null}
-                </div>
+                  </div>
+                )}
 
                 {/* Nút áp dụng */}
                   {/* <button
