@@ -51,7 +51,7 @@ export default function Point() {
           setUserVouchers([]);
           return;
         }
-        const res = await fetch(`https://be-sgv1.onrender.com/api/vouchers/my-vouchers`, {
+        const res = await fetch(`https://be-bus4.onrender.com/api/vouchers/my-vouchers`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${jwt}`
@@ -69,7 +69,7 @@ export default function Point() {
   useEffect(() => {
     const fetchBanner = async () => {
       try {
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers/banner-headers");
+        const res = await fetch("https://be-bus4.onrender.com/api/vouchers/banner-headers");
         if (!res.ok) throw new Error("Lỗi khi lấy banner");
         const response = await res.json();
         console.log("Banner response:", response);
@@ -98,7 +98,7 @@ export default function Point() {
       setLoading(true);
       try {
         // 1. Gọi API lấy số lượng ô vòng quay
-        const configRes = await fetch("https://be-sgv1.onrender.com/api/vouchers/wheel-config");
+        const configRes = await fetch("https://be-bus4.onrender.com/api/vouchers/wheel-config");
         if (!configRes.ok) throw new Error("Lỗi khi lấy cấu hình vòng quay");
         const configData = await configRes.json();
         const num = configData.num_segments || configData.data?.num_segments;
@@ -106,7 +106,7 @@ export default function Point() {
         console.log("num_segments từ API:", num);
 
         // 2. Gọi API lấy danh sách voucher
-        const res = await fetch("https://be-sgv1.onrender.com/api/vouchers?category=wheel");
+        const res = await fetch("https://be-bus4.onrender.com/api/vouchers?category=wheel");
         if (!res.ok) throw new Error("Lỗi khi lấy dữ liệu voucher");
         const data = await res.json();
 
@@ -185,7 +185,7 @@ export default function Point() {
 
     // Hàm gọi API quay, chỉ gửi JWT, không gửi zaloid/zaloId trong body
     const spinApi = async (jwtToken: string) => {
-      return fetch("https://be-sgv1.onrender.com/api/vouchers/spin-wheel-limit", {
+      return fetch("https://be-bus4.onrender.com/api/vouchers/spin-wheel-limit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -211,7 +211,7 @@ export default function Point() {
       if (!data.voucher) {
         throw new Error('No voucher returned from API');
       }
-
+      
       let winnerIndex = wheelVouchers.findIndex((v: Voucher) => 
         v.VoucherID === data.voucher.VoucherID || 
         v.VoucherID === data.voucher.voucherid || 

@@ -23,7 +23,7 @@ export function useRequestWithAuth() {
 import { getConfig } from "./template";
 
 // FIX: Hardcode production API URL
-const API_URL = "https://be-sgv1.onrender.com/api";
+const API_URL = "https://be-bus4.onrender.com/api";
 
 const mockUrls = import.meta.glob<{ default: string }>("../mock/*.json", {
   query: "url",

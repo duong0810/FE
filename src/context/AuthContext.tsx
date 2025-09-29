@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(JSON.parse(savedUser));
       setToken(savedToken);
       // Kiểm tra user còn tồn tại trên hệ thống không
-      fetch("https://be-sgv1.onrender.com/api/users/me", {
+      fetch("https://be-bus4.onrender.com/api/users/me", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

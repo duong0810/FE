@@ -15,7 +15,7 @@ export default () => {
     server: {
       proxy: {
         '/api': {
-          target: 'https://be-sgv1.onrender.com',
+          target: 'https://be-bus4.onrender.com',
           changeOrigin: true,
           secure: true
         },

@@ -14,7 +14,7 @@ export const userState = atom(() =>
 // Banners (FIX: Return hardcoded array instead of API call)
 export const bannersState = atom(() => {
   // Return hardcoded banners for now
-  const BE_DOMAIN = 'https://be-sgv1.onrender.com';
+  const BE_DOMAIN = 'https://be-bus4.onrender.com';
   const defaultBanners: string[] = [
   `${BE_DOMAIN}/images/banner/banner.jpg`,
   `${BE_DOMAIN}/images/banner/banner.jpg`,
@@ -38,7 +38,7 @@ export const selectedTabIndexState = atom(0);
 // Categories (FIX: Add missing image property)
 export const categoriesState = atom(() => {
   // Return hardcoded categories with ALL required properties
-  const BE_DOMAIN = 'https://be-sgv1.onrender.com';
+  const BE_DOMAIN = 'https://be-bus4.onrender.com';
   const defaultCategories: Category[] = [
     { 
       id: 1, 
@@ -86,7 +86,7 @@ export const productsState = atom(async () => {
     console.log('🚀 Fetching products from API...');
     
     // FIX: Use correct API URL (port 3000)
-    const response = await fetch('https://be-sgv1.onrender.com/api/products');
+    const response = await fetch('https://be-bus4.onrender.com/api/products');
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

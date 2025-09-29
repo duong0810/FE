@@ -106,7 +106,7 @@ export default function AccountUpdate() {
     }
     const body = { ...form, birthday };
     try {
-      const res = await fetch("https://be-sgv1.onrender.com/api/users/me", {
+      const res = await fetch("https://be-bus4.onrender.com/api/users/me", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -119,7 +119,7 @@ export default function AccountUpdate() {
       setSuccess(true);
       // Sau khi cập nhật thành công, lấy lại thông tin user mới nhất và cập nhật vào context
       try {
-        const profileRes = await fetch("https://be-sgv1.onrender.com/api/users/me", {
+        const profileRes = await fetch("https://be-bus4.onrender.com/api/users/me", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
