@@ -74,7 +74,7 @@ export default function VoucherPage() {
           return;
         }
         const res = await fetch(
-          `https://be-bus4.onrender.com/api/vouchers/my-vouchers`,
+          `https://be-sgv1.onrender.com/api/vouchers/my-vouchers`,
           {
             headers: {
               'Content-Type': 'application/json',
